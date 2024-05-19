@@ -5,8 +5,8 @@ using CairoMakie: Label
 # using GLMakie
 include("../proto/protocolBlocks.jl")
 include("../proto/protocols.jl")
-include("markov.jl")
-include("objective.jl")
+include("../markov.jl")
+include("../traintils/objective.jl")
 
 openStateIndex = 1;
 dt = 1;
