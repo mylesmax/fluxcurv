@@ -1,0 +1,11 @@
+name: wtgv
+source: WTgv.dat
+v0: -100.0
+normalize: 1
+FLAG: 0
+weight: 4
+has_validation: 1
+step:
+  - dt: 25.0
+    stype: PEAK
+    stepsize: 0.2

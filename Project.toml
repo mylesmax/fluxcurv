@@ -1,0 +1,7 @@
+[deps]
+BayesNets = "ba4760a4-c768-5bed-964b-cf806dc591cb"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+ExponentialUtilities = "d4d017d3-3776-5f7e-afef-a10c40355c18"
+StatsPlots = "f3b207a7-027a-5e70-b257-86293d7955fd"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"

@@ -1,0 +1,16 @@
+name:     WTrecovery_val
+source:   WTrecovery_val.dat
+v0:       -100.0
+normalize: 1
+FLAG: 0
+weight: 3
+step:
+  - dt: 500.0
+    vm: -10
+    stype: NONE
+  - vm: -100
+    stype: NONE
+  - vm: -10.0
+    dt: 25.0
+    stype: PEAK
+    stepsize: 0.5

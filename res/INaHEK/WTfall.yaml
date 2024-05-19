@@ -1,0 +1,14 @@
+name: fall_WT
+source: WTfall.dat
+v0: -100.0
+normalize: 0
+FLAG: 0
+weight: 4
+has_validation: 1
+step:
+  - dt: 6.0
+    stype: TAU
+    stepsize: 0.05
+    extra_args:
+      - .99
+      - 0.5

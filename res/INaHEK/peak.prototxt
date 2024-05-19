@@ -1,0 +1,14 @@
+name: peak
+source: peak.dat
+v0: -100.0
+normalize: 1
+FLAG: -5
+weight: 1
+has_validation: 0
+
+step {
+ dt: 10
+ vm: -10
+ stype: TRACE
+ stepsize: 0.05
+}
