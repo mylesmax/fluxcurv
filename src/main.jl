@@ -75,48 +75,34 @@ end
 
 try
     res = bboptimize(
-        loss;
-        NumDimensions=length(params),
-        MaxSteps = 50000,
-        SearchRange = (-17, 17),
-        TraceMode = :compact,
-        PopulationSize = 5000,
-        Method = :xnes,
-        # Method = :probabilistic_descent,
-        NThreads = Threads.nthreads()-1,
-        Workers = workers(),
-        lambda = 100
+                loss;
+                NumDimensions=length(params),
+                MaxSteps = 50000,
+                SearchRange = (-17, 17),
+                TraceMode = :compact,
+                PopulationSize = 5000,
+                NThreads = Threads.nthreads()-1,
+                Method = :xnes,
+                # Method = :probabilistic_descent,
+                
+                # Workers = workers(),
+                lambda = 100
     )
 catch
-    try
-        res = bboptimize(
-        loss;
-        NumDimensions=length(params),
-        MaxSteps = 50000,
-        SearchRange = (-17, 17),
-        TraceMode = :compact,
-        PopulationSize = 5000,
-        Method = :xnes,
-        # Method = :probabilistic_descent,
-        NThreads = Threads.nthreads()-1,
-        Workers = workers(),
-        lambda = 100
-    )
-    catch
-        res = bboptimize(
+    res = bboptimize(
             loss;
             NumDimensions=length(params),
             MaxSteps = 50000,
             SearchRange = (-17, 17),
             TraceMode = :compact,
             PopulationSize = 5000,
+            NThreads = Threads.nthreads()-5,
             Method = :xnes,
             # Method = :probabilistic_descent,
-            NThreads = Threads.nthreads()-1,
-            Workers = workers(),
+            
+            # Workers = workers(),
             lambda = 100
-        )
-    end
+    )
 end
 
 
