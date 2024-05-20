@@ -10,8 +10,8 @@ begin
     global n=7
     global n̅ = 1
     global rates = Dict{Edge, Tuple{Float64, Float64}}()
-    global args₁ = 2
-    global args₂ = -4
+    global args₁ = 0.1
+    global args₂ = 1
     global dt = 0.0001
     global dataPath = "res/INaHEK/"
 
@@ -36,8 +36,8 @@ begin
         for j in 1:n
             if i != j
                 global rates
-                rates[Edge(i, j)] = (100*rand(), 100*rand())
-                rates[Edge(j, i)] = (100*rand(), 100*rand())
+                rates[Edge(i, j)] = (10*rand(), 10*rand())
+                rates[Edge(j, i)] = (10*rand(), 10*rand())
             end
         end
     end
@@ -51,13 +51,10 @@ begin
             e = Edge(x,y)
             α, β = rates[e]
 
-            rate = exp(α + (β * tanh((V + args₁)/args₂)))
-            #TODO: think about this again, since exp() kinda captures the movement of the channel in response to a good enough voltage pulse. but there's friction between ion channel subunits, so there's some sort of saturation in rate...
-
-            rate > 0.2 ? (return rate) : (return 0)
-            #added pruning?
-            # return 
-            # #TODO: add pruning if this is below a threshold?
+            rate = min(β, max(0, ((α * V - args₁)/args₂)))
+            # rate = min(max(0,β), max(0, ((α * V - args₁)/args₂)))
+            
+            return rate
         end
         q = zeros(n,n)
 
@@ -70,35 +67,26 @@ begin
         return q
     end
 
-    global params = vec(readdlm("out.txt"))
-    @show loss(params)
-    writedlm("newest.txt", loss(params))
-end
+    # global params = vec(readdlm("out.txt"))
+    # @show loss(params)
+    # writedlm("newest.txt", loss(params))
 
 
-# try
-    global params = vec(readdlm("out.txt"))
+try
+    # global params = vec(readdlm("out.txt"))
     count = 0;
     while true
         global params
-
-        res = bboptimize(
-                loss, params;
-                # NThreads = Threads.nthreads()-1,
+        global res = bboptimize(
+                loss;
                 NumDimensions=length(params),
-                MaxTime = 75,
-                SearchRange = (-17, 17),
-                TraceMode = :silent,
+                MaxSteps=5000,
+                # MaxTime = 20,
+                SearchRange = (-10, 10),
+                TraceMode = :compact,
                 PopulationSize = 5000,
-                # NThreads = Threads.nthreads()-1,
                 Method = :probabilistic_descent,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
                 lambda = 100,
-                # Method = :probabilistic_descent,
-                
-                # Workers = workers()
         )
         global params = best_candidate(res)
         setParams!(params)
@@ -107,8 +95,8 @@ end
     end
 
 
-# finally
-
+finally
+    global res
     global params = best_candidate(res)
     setParams!(params)
 
@@ -117,7 +105,8 @@ end
     writedlm("out.txt", params)
     writedlm("newest.txt", optimal_fitness)
 # end
-# end
+end
+end
 
 # for i ∈ 1:n
 #     for j ∈ 1:n
@@ -126,11 +115,11 @@ end
 # end
 
 
-"""
-PLOTTING?
-"""
+# """
+# PLOTTING?
+# """
 
-include("plot/plotting.jl")
+# include("plot/plotting.jl")
 
-#Graph plotting
-include("plot/graphplotting.jl")
+# #Graph plotting
+# include("plot/graphplotting.jl")

@@ -5,6 +5,7 @@ function getParams()
         α, β = rates[e]
         push!(params, α)
         push!(params, β)
+        # push!(params, γ)
     end
     push!(params, args₁)
     push!(params, args₂)

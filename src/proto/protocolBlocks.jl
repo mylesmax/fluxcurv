@@ -16,7 +16,7 @@ Returns a row vector for the probabilities in each state at the end of the durat
 function simulateStep(Q::Function, V::S, dur::T, initial::Vector{Float64}; all=false::Bool) where {S, T <: Number}
     isValid(Q, V) ? nothing : (return initial)
     
-    expQ = fastExpm(Q(V)*dt)
+    expQ = exponential!(Q(V)*dt)
     s = [initial]
     for (i, _) ∈ enumerate(1:1:dur)
         push!(s, expQ*s[i])
@@ -79,7 +79,7 @@ function isValid(Q,V)
     end
 
     try
-        fastExpm(q*dt)
+        exponential!(q*dt)
     catch e
         return false
     end
