@@ -71,6 +71,7 @@ begin
 
     global params = vec(readdlm("out.txt"))
     @show loss(params)
+    writedlm("newest.txt", loss(params))
 end
 
 
@@ -88,7 +89,7 @@ end
                 SearchRange = (-17, 17),
                 TraceMode = :silent,
                 PopulationSize = 5000,
-                NThreads = Threads.nthreads()-1,
+                # NThreads = Threads.nthreads()-1,
                 Method = :probabilistic_descent,
                 # NThreads = Threads.nthreads()-1,
                 # NThreads = Threads.nthreads()-1,
@@ -96,7 +97,7 @@ end
                 lambda = 100,
                 # Method = :probabilistic_descent,
                 
-                Workers = workers()
+                # Workers = workers()
         )
         global params = best_candidate(res)
         setParams!(params)
