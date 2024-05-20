@@ -1,3 +1,4 @@
+# using FastExpm
 """
 *Simulate a step to a particular voltage for a particular duration*
 
@@ -11,10 +12,11 @@
 
 Returns a row vector for the probabilities in each state at the end of the duration
 """
+
 function simulateStep(Q::Function, V::S, dur::T, initial::Vector{Float64}; all=false::Bool) where {S, T <: Number}
     isValid(Q, V) ? nothing : (return initial)
     
-    expQ = exponential!(Q(V)*dt)
+    expQ = fastExpm(Q(V)*dt)
     s = [initial]
     for (i, _) ∈ enumerate(1:1:dur)
         push!(s, expQ*s[i])
@@ -48,6 +50,7 @@ end
 
 Returns a row vector for the probabilities in each state at steady state
 """
+
 function simulateSS(Q::Function, V::T) where T <: Number
     isValid(Q, V) ? nothing : (return zeros(length(Q(V)[1,:])))
     
@@ -65,6 +68,7 @@ end
 """
 isValid will check to see if the Q and V pair is valid for computing inverse and matrix exponential
 """
+
 function isValid(Q,V)
     q = Q(V)
 
@@ -75,7 +79,7 @@ function isValid(Q,V)
     end
 
     try
-        exponential!(q*dt)
+        fastExpm(q*dt)
     catch e
         return false
     end

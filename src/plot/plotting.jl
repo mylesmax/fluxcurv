@@ -2,21 +2,14 @@ using ExponentialUtilities, DelimitedFiles, Colors
 using MakieThemes, Makie
 using LaTeXStrings, MathTeXEngine
 using CairoMakie: Label
-# using GLMakie
-include("../proto/protocolBlocks.jl")
-include("../proto/protocols.jl")
-include("../markov.jl")
-include("../traintils/objective.jl")
-
-openStateIndex = 1;
-dt = 1;
+using CairoMakie
 
 """
 PLOTTING
 """
 
 function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous/newmodel.txt")), title::String = "unknown")
-    updateRates!(params)
+    global rates
     scalingfactor = 1
 
     !@isdefined(f) ? f= Figure(size=(1600,800),fontsize=8 ./scalingfactor) : nothing
@@ -34,15 +27,15 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     SSI
     """
     ax1 = CairoMakie.Axis(f[1,1], title = "Steady State Inactivation", xlabel="Voltage (mV)", ylabel = L"\frac{I}{I_{\mathrm{max}}}", ylabelrotation=2π,xticklabelrotation=π/4, xticks= [-100, -75, -50])
-    ssiRange = readdlm("INaHEK/"*WTinac["source"])[:, 1]
+    ssiRange = readdlm(dataPath*WTinac["source"])[:, 1]
     ssiPred= zeros(length(ssiRange[1]:5:ssiRange[end]))
     try
         ssiPred = SSI(WTinac, Q, range = ssiRange[1]:5:ssiRange[end])
     catch
         ssiPred= zeros(length(ssiRange[1]:5:ssiRange[end]))
     end
-    ssiTrue = readdlm("INaHEK/"*WTinac["source"])[:, 2]
-    ssiMSC = readdlm("INaHEK/"*WTinac["source"])[:, 3]
+    ssiTrue = readdlm(dataPath*WTinac["source"])[:, 2]
+    ssiMSC = readdlm(dataPath*WTinac["source"])[:, 3]
 
 
     CairoMakie.scatterlines!(ax1, ssiRange[1]:5:ssiRange[end], ssiPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
@@ -55,15 +48,15 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     """
     ax2 = CairoMakie.Axis(f[1,2], title = "Activation", xlabel="Voltage (mV)", ylabel = L"\frac{I}{I_{\mathrm{max}}}", ylabelrotation=2π,xticklabelrotation=π/4, xticks= [-40, -30, -20, -10, 0, 10, 20])
 
-    actRange = readdlm("INaHEK/"*WTgv["source"])[:, 1]
+    actRange = readdlm(dataPath*WTgv["source"])[:, 1]
     actPred= zeros(length(actRange[1]:5:actRange[end]))
     try
         actPred = activation(WTgv, Q, range = actRange[1]:5:actRange[end])
     catch
         actPred= zeros(length(actRange[1]:5:actRange[end]))
     end
-    actTrue = readdlm("INaHEK/"*WTgv["source"])[:, 2]
-    actMSC = readdlm("INaHEK/"*WTgv["source"])[:, 3]
+    actTrue = readdlm(dataPath*WTgv["source"])[:, 2]
+    actMSC = readdlm(dataPath*WTgv["source"])[:, 3]
 
     CairoMakie.scatterlines!(ax2, actRange[1]:5:actRange[end], actPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
     CairoMakie.scatterlines!(ax2, actRange, actTrue, linewidth=3 ./scalingfactor,linestyle=:dot, color=:green, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Real")
@@ -87,7 +80,7 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
         xminorticks = IntervalsBetween(5)
     )
     
-    recRange = readdlm("INaHEK/"*WTrecovery["source"])[:, 1]
+    recRange = readdlm(dataPath*WTrecovery["source"])[:, 1]
     recPred= zeros(length(recRange[1]:5:recRange[end]))
     try
         recPred = recovery(WTrecovery, Q, trange = recRange[1]:5:recRange[end])
@@ -95,8 +88,8 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
         recPred= zeros(length(recRange[1]:5:recRange[end]))
     end
     
-    recTrue = readdlm("INaHEK/"*WTrecovery["source"])[:, 2]
-    recMSC = readdlm("INaHEK/"*WTrecovery["source"])[:, 3]
+    recTrue = readdlm(dataPath*WTrecovery["source"])[:, 2]
+    recMSC = readdlm(dataPath*WTrecovery["source"])[:, 3]
 
     CairoMakie.scatterlines!(ax3, recRange[1]:5:recRange[end], recPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
     CairoMakie.scatterlines!(ax3, recRange, recTrue, linewidth=3 ./scalingfactor,linestyle=:dot, color=:green, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Real")
@@ -119,15 +112,15 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
         xminorgridvisible = true,
         xminorticks = IntervalsBetween(5)
     )
-    RUDBRange = readdlm("INaHEK/"*WTRUDB["source"])[:, 1]
+    RUDBRange = readdlm(dataPath*WTRUDB["source"])[:, 1]
     RUDBPred= zeros(length(RUDBRange))
     try
         RUDBPred = recoveryUDB(WTRUDB, Q)
     catch
         RUDBPred= zeros(length(RUDBRange))
     end
-    RUDBTrue = readdlm("INaHEK/"*WTRUDB["source"])[:, 2]
-    RUDBMSC = readdlm("INaHEK/"*WTRUDB["source"])[:, 3]
+    RUDBTrue = readdlm(dataPath*WTRUDB["source"])[:, 2]
+    RUDBMSC = readdlm(dataPath*WTRUDB["source"])[:, 3]
 
     CairoMakie.scatterlines!(ax4, RUDBRange, RUDBPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
     CairoMakie.scatterlines!(ax4, RUDBRange, RUDBTrue, linewidth=3 ./scalingfactor, linestyle=:dot,color=:green, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1, label="Real")
@@ -139,7 +132,7 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     """
     ax5 = CairoMakie.Axis(f[1,3], title = "MaxPO", xlabel="Voltage (mV)", ylabel = L"\frac{I}{I_{\mathrm{max}}}", ylabelrotation=2π,xticklabelrotation=π/4, xticks= [-20, -15, -10, -5, 0])
     
-    maxPORange = readdlm("INaHEK/"*WTmaxpo["source"])[:, 1]
+    maxPORange = readdlm(dataPath*WTmaxpo["source"])[:, 1]
     maxPOPred= zeros(length(maxPORange[1]:5:maxPORange[end]))
     try
         maxPOPred = maxpo(WTmaxpo, Q, range = maxPORange[1]:5:maxPORange[end])
@@ -147,8 +140,8 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     catch
         maxPOPred= zeros(length(maxPORange[1]:5:maxPORange[end]))
     end
-    maxPOTrue = readdlm("INaHEK/"*WTmaxpo["source"])[:, 2]
-    maxPOMSC = readdlm("INaHEK/"*WTmaxpo["source"])[:, 3]
+    maxPOTrue = readdlm(dataPath*WTmaxpo["source"])[:, 2]
+    maxPOMSC = readdlm(dataPath*WTmaxpo["source"])[:, 3]
 
     CairoMakie.scatterlines!(ax5, maxPORange[1]:5:maxPORange[end], maxPOPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
     CairoMakie.scatterlines!(ax5, maxPORange, maxPOTrue, linewidth=3 ./scalingfactor, linestyle=:dot,color=:green, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Real")
@@ -160,15 +153,15 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     """
     ax6 = CairoMakie.Axis(f[2,3], title = "Fall", ylabel="τ (ms/100)", xlabel = "Voltage (mV)", xticklabelrotation=π/4, xticks =[-20, -10, 0, 10, 20])
     
-    fallRange = readdlm("INaHEK/"*WTfall["source"])[:, 1]
+    fallRange = readdlm(dataPath*WTfall["source"])[:, 1]
     fallPred= zeros(length(-20:1:20))
     try
         fallPred = fall(WTfall, Q, range = -20:1:20)
     catch
         fallPred= zeros(length(-20:1:20))
     end
-    fallTrue = readdlm("INaHEK/"*WTfall["source"])[:, 2]
-    fallMSC = readdlm("INaHEK/"*WTfall["source"])[:, 3]
+    fallTrue = readdlm(dataPath*WTfall["source"])[:, 2]
+    fallMSC = readdlm(dataPath*WTfall["source"])[:, 3]
 
     CairoMakie.scatterlines!(ax6, -20:1:20, fallPred, linewidth=3 ./scalingfactor, color=:black, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Simulated")
     CairoMakie.scatterlines!(ax6, fallRange, fallTrue, linewidth=3 ./scalingfactor, linestyle=:dot,color=:green, marker=:circle, markercolor=:white, markersize=10 ./scalingfactor, strokecolor=:black, strokewidth=1 ./scalingfactor, label="Real")

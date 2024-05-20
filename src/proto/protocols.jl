@@ -1,5 +1,5 @@
 function SSI(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen) #the range is my fallback
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
     
 
@@ -13,7 +13,7 @@ function SSI(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0
 
     oNormalized = []
     if protoInfo["normalize"] == 1
-        o = [steps[i][openStateIndex] for i in 1:size(steps)[1]]
+        o = [steps[i][n̅] for i in 1:size(steps)[1]]
         oNormalized = o ./ findmax(o)[1]
     end
 
@@ -21,7 +21,7 @@ function SSI(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0
 end
 
 function activation(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen)
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
 
     (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
@@ -33,7 +33,7 @@ function activation(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0
 
     oNormalized = []
     if protoInfo["normalize"] == 1
-        o = [steps[i][openStateIndex] for i in 1:size(steps)[1]]
+        o = [steps[i][n̅] for i in 1:size(steps)[1]]
         oNormalized = o ./ findmax(o)[1]
     end
 
@@ -50,7 +50,7 @@ RECOVERY PROTOCOL\n
 "Steady-state probabilities were found at -100 mV. A depolarizing pulse at -10 mV for 500 ms was applied, followed by a hyperpolarizing pulse at -100 mV ranging between 0.5–210 ms. Peak current current was then recorded and normalized after a pulse at -10 mV for 25 ms. Ito,f: Steady-state probabilities were found at -70 mV. A depolarizing pulse at 40 mV for 500 ms was applied, followed by a hyperpolarizing pulse of -70 mV of variable time intervals (2–6000 ms). Peak current was then recorded and normalized after a pulse at 40 mV for 100 ms."*
 """
 function recovery(protoInfo::Dict{Any, Any}, Q::Function; trange=StepRangeLen(0,1e-6,0)::StepRangeLen)
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
 
     (trange==StepRangeLen(0,1e-6,0)) ? trange = data[:,1] : nothing
@@ -70,7 +70,7 @@ function recovery(protoInfo::Dict{Any, Any}, Q::Function; trange=StepRangeLen(0,
 
     oNormalized = []
     if protoInfo["normalize"] == 1
-        o = [steps[i][openStateIndex] for i in 1:size(steps)[1]]
+        o = [steps[i][n̅] for i in 1:size(steps)[1]]
         oNormalized = o ./ findmax(o)[1]
     end
 
@@ -87,7 +87,7 @@ RECOVERY FROM USE DEPENDENT BLOCK PROTOCOL\n
 "Steady-state probabilities were found at -100 mV. A pulse train of a depolarization at -10 mV for 25 ms at 25 Hz was repeated for 100 pulses. A hyperpolarizing pulse at -100 mV for variable recovery intervals was applied for between 0.5–9000 ms. A test pulse followed at -10 mV for 25 ms and peak current was normalized to the maximum."*
 """
 function recoveryUDB(protoInfo::Dict{Any, Any}, Q::Function; trange=StepRangeLen(0,1e-6,0)::StepRangeLen)    
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
 
     (trange==StepRangeLen(0,1e-6,0)) ? trange = data[:,1] : nothing
@@ -113,7 +113,7 @@ function recoveryUDB(protoInfo::Dict{Any, Any}, Q::Function; trange=StepRangeLen
 
     oNormalized = []
     if protoInfo["normalize"] == 1
-        o = [steps[i][openStateIndex] for i in 1:size(steps)[1]]
+        o = [steps[i][n̅] for i in 1:size(steps)[1]]
         oNormalized = o ./ findmax(o)[1]
     end
 
@@ -131,7 +131,7 @@ MAXIMUM OPEN PROBABILITY\n
 "To constrain open probabilities, maximum open probabilities of 0.27, 0.31, 0.29 at -20, -10, 0 mV, respectively (calculated from ten Tusscher 2006[52] solved in MATLAB with ode15s) were enforced."*
 """
 function maxpo(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen)    
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
 
     (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
@@ -140,7 +140,7 @@ function maxpo(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6
     try
         for V ∈ range
             gather = simulateStep(Q, V, 500, initial, all=true)
-            gatherOpens = [gather[i][openStateIndex] for i in 1:size(gather)[1]]
+            gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
             peak = gatherOpens[argmax(gatherOpens)]
 
             # step = simulateStep(Q, V, protoInfo["step"][1]["dt"], initial)
@@ -165,7 +165,7 @@ TAU INACTIVATION PROTOCOL\n
 "Steady-state probabilities were found at -100 mV. For voltages between -20 to 20 mV in 5 mV increments, the time to 50% decay of peak current was recorded."*
 """
 function fall(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen)    
-    data = readdlm("INaHEK/"*protoInfo["source"])
+    data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
 
     (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
@@ -177,7 +177,7 @@ function fall(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,
             #for each voltage, we gather the time distribution of the open state
             #and isolate the peak, 50% of the peak, and determine the time between them
             gather = simulateStep(Q, V, 500, initial, all=true)
-            gatherOpens = [gather[i][openStateIndex] for i in 1:size(gather)[1]]
+            gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
             nmGatherOpens = gatherOpens ./ findmax(gatherOpens)[1]
             
             halfPeakValue = 0.50 * nmGatherOpens[argmax(nmGatherOpens)]
@@ -203,7 +203,7 @@ function ttpeak(Q::Function)
     ttpS = []
     try
         gather = simulateStep(Q, -10, 500, initial, all=true)
-        gatherOpens = [gather[i][openStateIndex] for i in 1:size(gather)[1]]
+        gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
         timeToPeak = argmax(gatherOpens)
 
         push!(ttpS, timeToPeak)
