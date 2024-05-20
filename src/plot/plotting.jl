@@ -1,7 +1,5 @@
 using ExponentialUtilities, DelimitedFiles, Colors
 using MakieThemes, Makie
-using LaTeXStrings, MathTeXEngine
-using CairoMakie: Label
 using CairoMakie
 
 """
