@@ -96,6 +96,7 @@ try
                 
                 Workers = workers()
         )
+        
         global params = best_candidate(res)
         setParams!(params)
         count += 1;

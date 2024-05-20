@@ -1,11 +1,11 @@
-using Pkg
-Pkg.activate(".")
+@everywhere using Pkg
+@everywhere Pkg.activate(".")
 
-using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
-using Flux, FastExpm, YAML, DelimitedFiles
-import Flux.Losses: mse
+@everywhere using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
+@everywhere using Flux, FastExpm, YAML, DelimitedFiles
+@everywhere import Flux.Losses: mse
 
-begin
+@everywhere begin
 
 global n=7
 global n̅ = 1
@@ -74,15 +74,17 @@ end
 
 try
     global params = vec(readdlm("out.txt"))
+    global curbestFitness = vec(readdlm("newest.txt"))[1]
     count = 0;
     while true
-        global params
+        global params = vec(readdlm("out.txt"))
+        global curbestFitness = vec(readdlm("newest.txt"))[1]
 
         res = bboptimize(
                 loss, params;
                 # NThreads = Threads.nthreads()-1,
                 NumDimensions=length(params),
-                MaxTime = 75,
+                MaxTime = 10,
                 SearchRange = (-17, 17),
                 TraceMode = :silent,
                 PopulationSize = 5000,
@@ -96,10 +98,17 @@ try
                 
                 Workers = workers()
         )
-        global params = best_candidate(res)
-        setParams!(params)
+        @sync begin end
+        @sync if best_fitness(res) < curbestFitness
+            global params = best_candidate(res)
+            global curbestFitness = best_fitness(res)
+            setParams!(params)
+            println("new best fitness ($(best_fitness(res)))")
+            writedlm("out.txt", params)
+            writedlm("newest.txt", curbestFitness)
+        end
         count += 1;
-        println("[$count] cycle over, best fitness $(best_fitness(res))")
+        @sync println("[$count] cycle over, best fitness $(best_fitness(res))")
     end
 
 
