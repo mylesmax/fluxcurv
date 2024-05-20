@@ -87,7 +87,7 @@ try
                 TraceMode = :silent,
                 PopulationSize = 5000,
                 NThreads = Threads.nthreads()-1,
-                Method = :probabilistic_descent,
+                Method = :dxnes,
                 # NThreads = Threads.nthreads()-1,
                 # NThreads = Threads.nthreads()-1,
                 # NThreads = Threads.nthreads()-1,
@@ -110,6 +110,6 @@ finally
 
     optimal_fitness = best_fitness(res)
 
-    writedlm("out.txt", params)
-    writedlm("newest.txt", optimal_fitness) end
+    writedlm("outZN.txt", params)
+    writedlm("newestZN.txt", optimal_fitness) end
 end
