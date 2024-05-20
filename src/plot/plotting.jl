@@ -191,6 +191,9 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("trainedSaves/Previous
     f
 end
 
+f =  Figure(size=(1200,800))
+plotall(f, params=params)
+
 #= 
 wustlPSO10 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso10.yml")
 plotall(params = wustlPSO10["curParams"])
@@ -241,110 +244,110 @@ wustlPSO7NEXT = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/
 plotall(params = wustlPSO7NEXT["curParams"])
 length(wustlPSO7NEXT["iterations"])
 =#
- f=  Figure(size=(1200,800))
-plotall(f, params=params)
+# f=  Figure(size=(1200,800))
+# plotall(f, params=params)
 
-function psoCurves()
-    function convTimes(inp::String)
-        dateFormat = "e, u d, Y at HH:MM:SS"
-        starttime = replace(inp, r"\s(AM|PM)$" => "")
-        return DateTime(starttime, dateFormat)
-    end
-    function psoParams(inp::Dict{Any,Any}; val=false::Bool)
-        curve = Float64[]
-        dates = Float64[]
-        initialDate = convTimes(inp["starttime"])
+# function psoCurves()
+#     function convTimes(inp::String)
+#         dateFormat = "e, u d, Y at HH:MM:SS"
+#         starttime = replace(inp, r"\s(AM|PM)$" => "")
+#         return DateTime(starttime, dateFormat)
+#     end
+#     function psoParams(inp::Dict{Any,Any}; val=false::Bool)
+#         curve = Float64[]
+#         dates = Float64[]
+#         initialDate = convTimes(inp["starttime"])
 
-        for it ∈ inp["iterations"]
-            push!(dates, Dates.value(convTimes(it["endtime"])-initialDate))
-            val ? push!(curve, it["validation"]) : push!(curve, it["loss"])
-        end
+#         for it ∈ inp["iterations"]
+#             push!(dates, Dates.value(convTimes(it["endtime"])-initialDate))
+#             val ? push!(curve, it["validation"]) : push!(curve, it["loss"])
+#         end
 
-        return (dates./ 60000, curve)
-    end
-    function findElapsedTime(inp::Dict{Any,Any})
-        times = []
-        for (i, it) ∈ enumerate(inp["iterations"])
-            (i == 1) ? (prev = inp["starttime"]) : (prev = inp["iterations"][i-1]["endtime"])
-            push!(times, Dates.value(convTimes(it["endtime"])-convTimes(prev)))
-        end
+#         return (dates./ 60000, curve)
+#     end
+#     function findElapsedTime(inp::Dict{Any,Any})
+#         times = []
+#         for (i, it) ∈ enumerate(inp["iterations"])
+#             (i == 1) ? (prev = inp["starttime"]) : (prev = inp["iterations"][i-1]["endtime"])
+#             push!(times, Dates.value(convTimes(it["endtime"])-convTimes(prev)))
+#         end
 
-        return round(sum(times)/(60000*length(times)),digits=2) #minutes
-    end
+#         return round(sum(times)/(60000*length(times)),digits=2) #minutes
+#     end
 
-    CairoMakie.set_theme!(ggthemr(:fresh))
+#     CairoMakie.set_theme!(ggthemr(:fresh))
 
-    wustlPSO10 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso10.yml")
-    wustlPSO7 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso7.yml")
-    wustlPSO11 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso11.yml")
-    wustlPSO15 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso15.yml")
-    wustlPSO9 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso9.yml")
-    wustlPSO13 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso13.yml")
-    wustlPSO17 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso17.yml")
-    wustlPSO14 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso14.yml")
-    wustlPSO20 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso20.yml")
+#     wustlPSO10 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso10.yml")
+#     wustlPSO7 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso7.yml")
+#     wustlPSO11 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso11.yml")
+#     wustlPSO15 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso15.yml")
+#     wustlPSO9 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso9.yml")
+#     wustlPSO13 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso13.yml")
+#     wustlPSO17 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso17.yml")
+#     wustlPSO14 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso14.yml")
+#     wustlPSO20 = YAML.load_file("/Volumes/m.max/Desktop/Silva Lab/markovSimpleNa/trainedSaves/pso2/pso20.yml")
 
 
-    f = Figure(size=(1400,600), fontsize=8)
+#     f = Figure(size=(1400,600), fontsize=8)
 
-    ax = CairoMakie.Axis(
-        f[1,1],
-        yscale = log10,
-        # xscale=log2,
-        title = "Training Curves (10^3 PSO + 10^2 Nelder Mead)",
-        xlabel = "Time from Start (minutes)",
-        ylabel = "Objective Loss (Huber)",
-        titlefont = :bold,
-        titlesize = 20,
-        xlabelsize = 18,
-        ylabelsize = 18,
-        yminorticksvisible = true,
-        yminorgridvisible = true,
-        ytickformat = values -> [rich("10", superscript(" $(Float64(log10(value)))")) for value in values],
-        yminorticks = IntervalsBetween(5)
-    )
+#     ax = CairoMakie.Axis(
+#         f[1,1],
+#         yscale = log10,
+#         # xscale=log2,
+#         title = "Training Curves (10^3 PSO + 10^2 Nelder Mead)",
+#         xlabel = "Time from Start (minutes)",
+#         ylabel = "Objective Loss (Huber)",
+#         titlefont = :bold,
+#         titlesize = 20,
+#         xlabelsize = 18,
+#         ylabelsize = 18,
+#         yminorticksvisible = true,
+#         yminorgridvisible = true,
+#         ytickformat = values -> [rich("10", superscript(" $(Float64(log10(value)))")) for value in values],
+#         yminorticks = IntervalsBetween(5)
+#     )
 
-    # lines!(ax, psoParams(wustlPSO10)...,linewidth=5, color=:black, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="10 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO10)) min")
-    scatterlines!(ax, psoParams(wustlPSO7)...,linewidth=5, color=:blue, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="7 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO7)) min")
-    scatterlines!(ax, psoParams(wustlPSO11)...,linewidth=5, color=:green, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="11 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO11)) min")
-    scatterlines!(ax, psoParams(wustlPSO15)...,linewidth=5, color=:brown, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="15 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO15)) min")
-    scatterlines!(ax, psoParams(wustlPSO9)...,linewidth=5, color=:red, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="9 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO9)) min")
-    scatterlines!(ax, psoParams(wustlPSO13)...,linewidth=5, color=:orange, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="13 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO13)) min")
-    scatterlines!(ax, psoParams(wustlPSO17)...,linewidth=5, color=:gray, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="17 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO17)) min")
-    scatterlines!(ax, psoParams(wustlPSO14)...,linewidth=5, color=:aquamarine, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="14 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO14)) min")
-    scatterlines!(ax, psoParams(wustlPSO20)...,linewidth=5, color=:magenta, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="20 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO20)) min")
+#     # lines!(ax, psoParams(wustlPSO10)...,linewidth=5, color=:black, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="10 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO10)) min")
+#     scatterlines!(ax, psoParams(wustlPSO7)...,linewidth=5, color=:blue, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="7 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO7)) min")
+#     scatterlines!(ax, psoParams(wustlPSO11)...,linewidth=5, color=:green, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="11 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO11)) min")
+#     scatterlines!(ax, psoParams(wustlPSO15)...,linewidth=5, color=:brown, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="15 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO15)) min")
+#     scatterlines!(ax, psoParams(wustlPSO9)...,linewidth=5, color=:red, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="9 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO9)) min")
+#     scatterlines!(ax, psoParams(wustlPSO13)...,linewidth=5, color=:orange, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="13 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO13)) min")
+#     scatterlines!(ax, psoParams(wustlPSO17)...,linewidth=5, color=:gray, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="17 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO17)) min")
+#     scatterlines!(ax, psoParams(wustlPSO14)...,linewidth=5, color=:aquamarine, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="14 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO14)) min")
+#     scatterlines!(ax, psoParams(wustlPSO20)...,linewidth=5, color=:magenta, marker=:circle, markercolor=:white, markersize=5, strokecolor=:black, strokewidth=1, label="20 Particles\nAverage Iteration: $(findElapsedTime(wustlPSO20)) min")
 
-    ax2 = CairoMakie.Axis(
-        f[1,2],
-        yscale = log10,
-        # xscale=log2,
-        title="Validation Curves (10^3 PSO + 10^2 Nelder Mead)",
-        xlabel="Time from Start (minutes)",
-        ylabel = "Objective Loss (Huber)",
-        titlefont = :bold,
-        titlesize = 20,
-        xlabelsize = 18,
-        ylabelsize = 18,
-        yminorticksvisible = true,
-        yminorgridvisible = true,
-        ytickformat = values -> [rich("10", superscript(" $(Float64(log10(value)))")) for value in values],
-        yminorticks = IntervalsBetween(5)
-    )
-    ylims!(ax2, (10^-3,10^-1))
+#     ax2 = CairoMakie.Axis(
+#         f[1,2],
+#         yscale = log10,
+#         # xscale=log2,
+#         title="Validation Curves (10^3 PSO + 10^2 Nelder Mead)",
+#         xlabel="Time from Start (minutes)",
+#         ylabel = "Objective Loss (Huber)",
+#         titlefont = :bold,
+#         titlesize = 20,
+#         xlabelsize = 18,
+#         ylabelsize = 18,
+#         yminorticksvisible = true,
+#         yminorgridvisible = true,
+#         ytickformat = values -> [rich("10", superscript(" $(Float64(log10(value)))")) for value in values],
+#         yminorticks = IntervalsBetween(5)
+#     )
+#     ylims!(ax2, (10^-3,10^-1))
     
-    # lines!(ax2, psoParams(wustlPSO10, val=true)...,linewidth=1, color=:black, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="10 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO7, val=true)...,linewidth=2.5, color=:blue, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="7 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO11, val=true)...,linewidth=2.5, color=:green, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="11 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO15, val=true)...,linewidth=2.5, color=:brown, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="15 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO9, val=true)...,linewidth=2.5, color=:red, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="9 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO13, val=true)...,linewidth=2.5, color=:orange, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="13 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO17, val=true)...,linewidth=2.5, color=:gray, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="17 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO14, val=true)...,linewidth=2.5, color=:aquamarine, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="14 Particles (VALIDATION)")
-    lines!(ax2, psoParams(wustlPSO20, val=true)...,linewidth=2.5, color=:magenta, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="20 Particles (VALIDATION)")
+#     # lines!(ax2, psoParams(wustlPSO10, val=true)...,linewidth=1, color=:black, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="10 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO7, val=true)...,linewidth=2.5, color=:blue, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="7 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO11, val=true)...,linewidth=2.5, color=:green, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="11 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO15, val=true)...,linewidth=2.5, color=:brown, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="15 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO9, val=true)...,linewidth=2.5, color=:red, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="9 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO13, val=true)...,linewidth=2.5, color=:orange, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="13 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO17, val=true)...,linewidth=2.5, color=:gray, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="17 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO14, val=true)...,linewidth=2.5, color=:aquamarine, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="14 Particles (VALIDATION)")
+#     lines!(ax2, psoParams(wustlPSO20, val=true)...,linewidth=2.5, color=:magenta, marker=:circle, markercolor=:white, markersize=15, strokecolor=:black, strokewidth=2, label="20 Particles (VALIDATION)")
 
-    f[1,3] = Legend(f, ax, "Particle Count",position=:rt, backgroundcolor=(:white, 0.8), patchsize=(80.0f0,70.0f0))
-    f
-end
+#     f[1,3] = Legend(f, ax, "Particle Count",position=:rt, backgroundcolor=(:white, 0.8), patchsize=(80.0f0,70.0f0))
+#     f
+# end
 
-# f = psoCurves()
-# save("psocurves.png",f)
+# # f = psoCurves()
+# # save("psocurves.png",f)

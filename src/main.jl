@@ -122,3 +122,13 @@ end
 #         i != j ? (@show i, j, r(i,j)) : nothing
 #     end
 # end
+
+
+"""
+PLOTTING?
+"""
+
+include("plot/plotting.jl")
+
+#Graph plotting
+include("plot/graphplotting.jl")
