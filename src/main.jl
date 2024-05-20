@@ -1,11 +1,11 @@
-using Pkg
-Pkg.activate(".")
+@everywhere using Pkg
+@everywhere  Pkg.activate(".")
 
-using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
-using Flux, FastExpm, YAML, DelimitedFiles
-import Flux.Losses: mse
+@everywhere using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
+@everywhere using Flux, FastExpm, YAML, DelimitedFiles
+@everywhere import Flux.Losses: mse
 
-begin
+@everywhere begin
 
 global n=7
 global n̅ = 1
@@ -74,28 +74,33 @@ end
 
 try
     global params = vec(readdlm("out.txt"))
+
     count = 0;
     while true
         global params
-
-        res = bboptimize(
-                loss, params;
-                # NThreads = Threads.nthreads()-1,
-                NumDimensions=length(params),
-                MaxTime = 75,
-                SearchRange = (-17, 17),
-                TraceMode = :silent,
-                PopulationSize = 5000,
-                NThreads = Threads.nthreads()-1,
-                Method = :probabilistic_descent,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
-                lambda = 100,
-                # Method = :probabilistic_descent,
-                
-                Workers = workers()
+        global res = bboptimize(
+            loss, params;
+            # NThreads = Threads.nthreads()-1,
+            NumDimensions=length(params),
+            SearchRange = (-17, 17),
+            MaxTime=10,
+            TraceMode = :compact,
+            PopulationSize = 5000,
+            Workers = workers(),
+            # NThreads = Threads.nthreads()-1,
+            Method = :probabilistic_descent,
+            # NThreads = Threads.nthreads()-1,
+            # NThreads = Threads.nthreads()-1,
+            # NThreads = Threads.nthreads()-1,
+            lambda = 100,
+            # Method = :probabilistic_descent,
+            
+            # Workers = workers()
         )
+        @sync begin end
+
+        @show dd = remotecall_fetch(minimum, WorkerPool(workers()), best_fitness(res))
+        
         global params = best_candidate(res)
         setParams!(params)
         count += 1;
@@ -104,6 +109,7 @@ try
 
 
 finally
+    global res
 
     global params = best_candidate(res)
     setParams!(params)

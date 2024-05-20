@@ -86,7 +86,7 @@ try
                 SearchRange = (-17, 17),
                 TraceMode = :silent,
                 PopulationSize = 5000,
-                NThreads = Threads.nthreads()-1,
+                
                 Method = :dxnes,
                 # NThreads = Threads.nthreads()-1,
                 # NThreads = Threads.nthreads()-1,
