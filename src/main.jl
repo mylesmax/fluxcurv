@@ -73,38 +73,24 @@ end
 
 end
 
-try
-    res = bboptimize(
-                loss;
-                NumDimensions=length(params),
-                MaxSteps = 50000,
-                SearchRange = (-17, 17),
-                TraceMode = :compact,
-                PopulationSize = 5000,
-                NThreads = Threads.nthreads()-1,
-                Method = :xnes,
-                # Method = :probabilistic_descent,
-                
-                # Workers = workers(),
-                lambda = 100
-    )
-catch
-    res = bboptimize(
+res = bboptimize(
             loss;
+            # NThreads = Threads.nthreads()-1,
             NumDimensions=length(params),
             MaxSteps = 50000,
             SearchRange = (-17, 17),
             TraceMode = :compact,
             PopulationSize = 5000,
-            NThreads = Threads.nthreads()-5,
+            NThreads = Threads.nthreads()-1,
             Method = :xnes,
+            # NThreads = Threads.nthreads()-1,
+            # NThreads = Threads.nthreads()-1,
+            # NThreads = Threads.nthreads()-1,
+            lambda = 100,
             # Method = :probabilistic_descent,
             
-            # Workers = workers(),
-            lambda = 100
-    )
-end
-
+            Workers = workers()
+)
 
 
 global params = best_candidate(res)
@@ -113,3 +99,4 @@ setParams!(params)
 optimal_fitness = best_fitness(res)
 
 writedlm("out.txt", params)
+writedlm("newest.txt", optimal_fitness)
