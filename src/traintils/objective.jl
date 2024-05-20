@@ -1,12 +1,3 @@
-# using Flux
-# import Flux.Losses: mse
-# include("../proto/protoImport.jl")
-# include("../proto/protocols.jl")
-# include("../proto/protocolBlocks.jl")
-# include("param.jl")
-# include("../src/markov.jl")
-
-
 #Inactivation
 function inacError(protoInfo::Dict{Any, Any})
     y = readdlm(dataPath*protoInfo["source"])[:, 2]

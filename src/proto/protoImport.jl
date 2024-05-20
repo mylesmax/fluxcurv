@@ -1,5 +1,3 @@
-# using YAML
-
 #imports for the INa HEK database
 WTfall_val = Dict(YAML.load_file(dataPath*"WTfall_val.yaml"))
 WTfall = Dict(YAML.load_file(dataPath*"WTfall.yaml"))
