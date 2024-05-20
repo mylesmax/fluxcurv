@@ -52,6 +52,7 @@ begin
             α, β = rates[e]
 
             rate = exp(α + (β * tanh((V + args₁)/args₂)))
+            #TODO: think about this again, since exp() kinda captures the movement of the channel in response to a good enough voltage pulse. but there's friction between ion channel subunits, so there's some sort of saturation in rate...
 
             rate > 0.2 ? (return rate) : (return 0)
             #added pruning?
