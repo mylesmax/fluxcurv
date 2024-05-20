@@ -84,7 +84,7 @@ try
                 loss, params;
                 # NThreads = Threads.nthreads()-1,
                 NumDimensions=length(params),
-                MaxTime = 10,
+                MaxTime = 70,
                 SearchRange = (-17, 17),
                 TraceMode = :silent,
                 PopulationSize = 5000,
