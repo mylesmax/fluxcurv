@@ -46,11 +46,11 @@ function plotGraphs(voltages)
             vertexshapesizes = (v) -> v ∈ (n̅) ? 25*s : 20*s,vertexfillcolors = (v) -> v ∈ (n̅) && colorant"lightgreen")
         end 400*s 400*s "res/pics/$m.png"
 
-        image!(ax, rotr90(load("res/pics/$m.png")))
+        image!(ax, rotr90(FileIO.load("res/pics/$m.png")))
 
     end
     
-    save("res/pics/composite.png", fig)
+    FileIO.save("res/pics/composite.png", fig)
     fig
 end
 

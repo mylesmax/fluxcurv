@@ -4,7 +4,7 @@ function inacError(protoInfo::Dict{Any, Any})
     ŷ = SSI(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for Inactivation: $(loss)")
@@ -18,7 +18,7 @@ function activationError(protoInfo::Dict{Any, Any})
     ŷ = activation(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for Activation: $(loss)")
@@ -32,7 +32,7 @@ function recoveryError(protoInfo::Dict{Any,Any})
     ŷ = recovery(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for Recovery: $(loss)")
@@ -46,7 +46,7 @@ function recoveryUDBError(protoInfo::Dict{Any,Any})
     ŷ = recoveryUDB(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for Recovery from UDB: $(loss)")
@@ -60,7 +60,7 @@ function maxPOError(protoInfo::Dict{Any,Any})
     ŷ = maxpo(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for maxPO: $(loss)")
@@ -74,7 +74,7 @@ function fall(protoInfo::Dict{Any,Any})
     ŷ = fall(protoInfo, Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for fall: $(loss)")
@@ -88,7 +88,7 @@ function ttp()
     ŷ = ttpeak(Q)
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
-    loss = Flux.mse(ŷ, y)
+    loss = mean((ŷ .- y) .^ 2)
     (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
 
     # println("Error determined for fall: $(loss)")
@@ -107,7 +107,7 @@ function loss(params)
         WTRUDB["weight"] * recoveryUDBError(WTRUDB),
         WTmaxpo["weight"] * maxPOError(WTmaxpo),
         WTfall["weight"] * fall(WTfall),
-        # 1 * ttp()
+        1 * ttp()
     ]
     weights = [
         WTgv["weight"],

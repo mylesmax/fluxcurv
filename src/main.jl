@@ -1,17 +1,17 @@
 using Pkg
 Pkg.activate(".")
 
-using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
+using Graphs, Karnak, Colors, BlackBoxOptim, Distributed, Dagger
 using Flux, FastExpm, YAML, DelimitedFiles
 import Flux.Losses: mse
 
 begin
 
-    global n=7
+    global n=8
     global n̅ = 1
     global rates = Dict{Edge, Tuple{Float64, Float64}}()
-    global args₁ = 0.1
-    global args₂ = 1
+    global args₁ = 2
+    global args₂ = -4
     global dt = 0.0001
     global dataPath = "res/INaHEK/"
 
@@ -36,8 +36,8 @@ begin
         for j in 1:n
             if i != j
                 global rates
-                rates[Edge(i, j)] = (10*rand(), 10*rand())
-                rates[Edge(j, i)] = (10*rand(), 10*rand())
+                rates[Edge(i, j)] = (100*rand(), 100*rand())
+                rates[Edge(j, i)] = (100*rand(), 100*rand())
             end
         end
     end
@@ -51,9 +51,8 @@ begin
             e = Edge(x,y)
             α, β = rates[e]
 
-            rate = min(β, max(0, ((α * V - args₁)/args₂)))
-            # rate = min(max(0,β), max(0, ((α * V - args₁)/args₂)))
-            
+            # rate = min(β, max(0, ((α * V - args₁)/args₂)))
+            rate = min(abs(β), max(0, ((α * V - args₁)/args₂)))
             return rate
         end
         q = zeros(n,n)
@@ -67,45 +66,70 @@ begin
         return q
     end
 
-    # global params = vec(readdlm("out.txt"))
-    # @show loss(params)
+    global params = vec(readdlm("out.txt"))
+    @show loss(params)
+    writedlm("newest.txt", loss(params))
+
     # writedlm("newest.txt", loss(params))
+    
+
+    global params = vec(readdlm("out.txt"))
+    global count = 0;
+    global finalParams = params;
+    global finalLoss = vec(readdlm("newest.txt"))[1];
+
+    global bestFitness = Inf
+    global bestParams = params
+    global bestWorker = -1
 
 
-try
-    # global params = vec(readdlm("out.txt"))
-    count = 0;
     while true
-        global params
-        global res = bboptimize(
-                loss;
-                NumDimensions=length(params),
-                MaxSteps=5000,
-                # MaxTime = 20,
-                SearchRange = (-10, 10),
-                TraceMode = :compact,
-                PopulationSize = 5000,
-                Method = :probabilistic_descent,
-                lambda = 100,
-        )
-        global params = best_candidate(res)
-        setParams!(params)
-        count += 1;
-        println("[$count] cycle over, best fitness $(best_fitness(res))")
+        thread_best_fitness = fill(Inf, (Threads.nthreads()-1))
+        thread_best_params = Vector{Any}(undef, (Threads.nthreads()-1))
+
+        lck = ReentrantLock()
+        Threads.@threads for i ∈ 1:(Threads.nthreads()-1)
+            global params
+            res = bboptimize(
+                    loss, params;
+                    NumDimensions=length(params),
+                    # MaxSteps=5000,
+                    MaxTime = 34,
+                    SearchRange = (-17, 17),
+                    TraceMode = :silent,
+                    PopulationSize = 17000,
+                    Method = :probabilistic_descent,
+                    lambda = 100,
+            )
+            Threads.lock(lck) do
+                myfitness = loss(best_candidate(res))
+                thread_best_fitness[i] = myfitness
+                thread_best_params[i] = best_candidate(res)
+            end
+        end
+        
+        for i in 1:(Threads.nthreads()-1)
+            if thread_best_fitness[i] < bestFitness
+                bestFitness = thread_best_fitness[i]
+                bestParams = thread_best_params[i]
+                bestWorker = i
+            end
+        end
+
+        if finalLoss > bestFitness
+            finalLoss = bestFitness
+            finalParams = bestParams
+            setParams!(finalParams)
+
+            println("[$count] loss updated as $finalLoss, updating out.txt and newest.txt")
+            writedlm("out.txt", finalParams)
+            writedlm("newest.txt", finalLoss)
+        else
+            println("[$count] no change. current best $bestParams")
+        end
+        global count += 1;
     end
 
-
-finally
-    global res
-    global params = best_candidate(res)
-    setParams!(params)
-
-    optimal_fitness = best_fitness(res)
-
-    writedlm("out.txt", params)
-    writedlm("newest.txt", optimal_fitness)
-# end
-end
 end
 
 # for i ∈ 1:n
@@ -119,7 +143,7 @@ end
 # PLOTTING?
 # """
 
-# include("plot/plotting.jl")
+include("plot/plotting.jl")
 
 # #Graph plotting
 # include("plot/graphplotting.jl")
