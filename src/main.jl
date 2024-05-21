@@ -2,7 +2,7 @@ using Pkg
 Pkg.activate(".")
 
 using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
-using Flux, FastExpm, YAML, DelimitedFiles
+using Flux, FastExpm, YAML, DelimitedFiles, StaticArrays
 import Flux.Losses: mse
 
 begin
@@ -43,6 +43,7 @@ begin
     end
 
     global params = getParams()
+    
 
     function Q(V::T) where T <: Number
         global rates, args₁, args₂
@@ -51,8 +52,8 @@ begin
             e = Edge(x,y)
             α, β = rates[e]
 
-            rate = min(β, max(0, ((α * V - args₁)/args₂)))
-            # rate = min(max(0,β), max(0, ((α * V - args₁)/args₂)))
+            # rate = min(β, max(0, ((α * V - args₁)/args₂)))
+            rate = min(max(0,β), max(0, ((α * V - args₁)/args₂)))
             
             return rate
         end
@@ -67,13 +68,27 @@ begin
         return q
     end
 
+
+# using PSOGPU, CUDA
+global params = vec(readdlm("out.txt"))
+setParams!(params)
+
+
+# j = @SArray Float64[n]
+# prob = PSOGPU.OptimizationProblem(consolidatedLoss, params, j)
+
+# sol = solve(prob,
+#     ParallelSyncPSOKernel(1, backend = CUDA.CUDABackend()),
+#     maxiters = 500)
+
+
     # global params = vec(readdlm("out.txt"))
     # @show loss(params)
     # writedlm("newest.txt", loss(params))
 
 
 try
-    # global params = vec(readdlm("out.txt"))
+    global params = SVector{2*n*(n-1)+2}(vec(readdlm("out.txt")))
     count = 0;
     while true
         global params
@@ -81,7 +96,7 @@ try
                 loss;
                 NumDimensions=length(params),
                 MaxSteps=5000,
-                # MaxTime = 20,
+                MaxTime = 20,
                 SearchRange = (-10, 10),
                 TraceMode = :compact,
                 PopulationSize = 5000,

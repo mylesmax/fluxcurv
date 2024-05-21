@@ -97,8 +97,9 @@ function ttp()
 end
 
 
-function loss(params)
+function loss(params, n)
     setParams!(params)
+    
     # @show [activationError(WTgv), inacError(WTinac), recoveryError(WTrecovery), recoveryUDBError(WTRUDB), maxPOError(WTmaxpo),  fall(WTfall), ttp()]
     errors = [
         WTgv["weight"] * activationError(WTgv),
