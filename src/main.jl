@@ -2,10 +2,9 @@ using Pkg
 Pkg.activate(".")
 
 using Graphs, Karnak, Colors, Optim, Distributed, Dagger
-using Flux, YAML, DelimitedFiles,Statistics
+using YAML, DelimitedFiles,Statistics
 using ExponentialUtilities
 using Logging, Printf, Dates, LoggingExtras
-import Flux.Losses: mse
 
 p = joinpath("logs/", @sprintf("log_%s.log", Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
 
@@ -24,18 +23,23 @@ end
 
 begin
 
-    global n=7
-    global n̅ = 1
+    n=7
+    n̅ = 1
     global rates = Dict{Edge, Tuple{Float64, Float64}}()
     global args₁ = 2
     global args₂ = -4
-    global dt = 0.1
-    global dataPath = "res/INaHEK/"
+    dt = 1e-12 #dt has to be set this low to allow for convergence between machines and fitting accuracy
+    
+    
+
+    dataPath = "res/INaHEK/"
     global out = "out.txt"
     global newest = "newest.txt"
 
     include("traintils/param.jl")
     include("proto/protoImport.jl")
+    protoData = protoImport(dataPath)
+
     include("proto/protocols.jl")
     include("proto/protocolBlocks.jl")
     include("traintils/objective.jl")

@@ -1,44 +1,6 @@
-function SSI(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen) #the range is my fallback
-    data = readdlm(dataPath*protoInfo["source"])
-    initial = simulateSS(Q, protoInfo["v0"])
-    
 
-    (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
-    steps = []
-    for V ∈ range
-        step = simulateStep(Q, V, protoInfo["step"][1]["dt"], initial)
-        test = simulateStep(Q, protoInfo["step"][2]["vm"], protoInfo["step"][2]["dt"], step)
-        push!(steps, test)
-    end
 
-    oNormalized = []
-    if protoInfo["normalize"] == 1
-        o = [steps[i][n̅] for i in 1:size(steps)[1]]
-        oNormalized = o ./ findmax(o)[1]
-    end
 
-    return oNormalized
-end
-
-function activation(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen)
-    data = readdlm(dataPath*protoInfo["source"])
-    initial = simulateSS(Q, protoInfo["v0"])
-
-    (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
-    steps = []
-    for V ∈ range
-        step = simulateStep(Q, V, protoInfo["step"][1]["dt"], initial)
-        push!(steps, step)
-    end
-
-    oNormalized = []
-    if protoInfo["normalize"] == 1
-        o = [steps[i][n̅] for i in 1:size(steps)[1]]
-        oNormalized = o ./ findmax(o)[1]
-    end
-
-    return oNormalized
-end
 
 """
 RECOVERY PROTOCOL\n
