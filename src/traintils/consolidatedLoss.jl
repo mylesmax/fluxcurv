@@ -91,13 +91,9 @@ function isValid(q)
     return true
 end
 
-function consolidatedLoss(params, additionals)
-    n = additionals[1]
-    n̅ = additionals[2]
-    dt = additionals[3]
-    dataPath = additionals[4]
-    protoData = additionals[5]
-    
+function consolidatedLoss(params, additionals::Addits)
+    @unpack n, n̅, dt, dataPath, protoData = additionals
+
     rates = Dict{Edge, Tuple{Float64, Float64}}(Edge(i, j) => (0,0) for i in 1:n, j in 1:n if i != j for idx in (2 * (i - 1) * (n - 1) + 2 * (j - 1) + 1):(2 * (i - 1) * (n - 1) + 2 * (j - 1) + 2))
     
     idx = 1
@@ -340,7 +336,6 @@ function consolidatedLoss(params, additionals)
         gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
         timeToPeak = argmax(gatherOpens) * 1e-3 #TODO:CHANGE THIS TO THE DT OF THE SIMULATESTEP ALL=TRUE
 
-        
         ŷ  = timeToPeak
         y=1
 
@@ -354,21 +349,21 @@ function consolidatedLoss(params, additionals)
 
     
     errors = [
-        WTgv["weight"] * activationError,
-        WTinac["weight"] * inactivationError,
-        WTrecovery["weight"] * recoveryErr,
-        WTRUDB["weight"] * recoveryUDBErr,
-        WTmaxpo["weight"] * maxPOErr,
-        WTfall["weight"] * fallErr,
+        protoData[:WTgv]["weight"] * activationErr,
+        protoData[:WTinac]["weight"] * inactivationErr,
+        protoData[:WTrecovery]["weight"] * recoveryErr,
+        protoData[:WTRUDB]["weight"] * recoveryUDBErr,
+        protoData[:WTmaxpo]["weight"] * maxPOErr,
+        protoData[:WTfall]["weight"] * fallErr,
         1 * ttpErr
     ]
     weights = [
-        WTgv["weight"],
-        WTinac["weight"],
-        WTrecovery["weight"],
-        WTRUDB["weight"],
-        WTmaxpo["weight"],
-        WTfall["weight"]
+        protoData[:WTgv]["weight"],
+        protoData[:WTinac]["weight"],
+        protoData[:WTrecovery]["weight"],
+        protoData[:WTRUDB]["weight"],
+        protoData[:WTmaxpo]["weight"],
+        protoData[:WTfall]["weight"]
     ]
     weightedAvg = sum(errors) / sum(weights)
 
