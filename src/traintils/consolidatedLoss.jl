@@ -6,14 +6,15 @@ function Q(V::T, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Floa
         e = Edge(x,y)
         α, β = rates[e]
 
-        rate = min(abs(β), max(0, ((α * V - args₁)/args₂)))
+        rate::Float64 = min(abs(β), max(0, ((α * V - args₁)/args₂)))
         return rate
     end
-    q = zeros(n,n)
+    
+    q::Matrix{Float64} = zeros(n::Int,n::Int)
 
-    for i ∈ 1:n
-        for j ∈ 1:n
-            i==j ? (q[i,j] = -sum(r(j, i) for j in 1:n if j != i)) : (q[i,j] = r(i,j))
+    for i::Int ∈ 1:n::Int
+        for j::Int ∈ 1:n::Int
+            i==j ? (q[i,j] = -sum(r(j, i)::Float64 for j in 1:n::Int if j != i)::Float64) : (q[i,j] = r(i,j))
         end
     end
 
@@ -23,23 +24,77 @@ end
 """
 *An efficient way to simulate a step for a particular voltage*
 """
-function simulateStep(rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64}}, args₁::Float64, args₂::Float64, Q::Function, V::S, dur::T, initial::Vector{Float64}; all=false::Bool) where {S, T <: Number}
+function simulateStep(rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64}}, args₁::Float64, args₂::Float64, Q::Function, V::S, dur::T, initial::Vector{Float64}; peak=false::Bool, all=false::Bool, time=true::Bool) where {S, T <: Number}
     
     qv = Q(V,rates, args₁, args₂)
 
-    isValid(qv) ? nothing : (return initial)
-    
-    expQ = exponential!(qv*dt)
-    s = [initial]
+    if (!isValid(qv::Matrix{Float64}, dt::Float64)::Bool || !isValid(qv::Matrix{Float64}, dur::Float64)::Bool || !isValid(qv::Matrix{Float64}, 1)::Bool)
+        if !all
+            if !peak
+                return initial
+            else
+                if time
+                    return dur
+                else
+                    return 1e10
+                end
+            end
+        else
+            newDt = 1 #TODO:change this if needed, copy from below
+            
+            expQ = 
+            s=[initial]
+            
+            for (i, _) ∈ enumerate(1:newDt:dur)
+                push!(s, initial)
+            end
+
+            return s
+        end
+        
+    end
+
 
     if !all
-        return expQ^(length(enumerate(1:dt:dur)))*initial
-    else
-        #we must change dt to 1e-3 to prevent LOOOOONG wait times
-        expQ = exponential!(qv*1e-3)
-        for (i, _) ∈ enumerate(1:1e-3:dur)
-            push!(s, expQ*s[i])
+        if !peak
+            # expQ = exponential!(qv*dt)
+
+            return exponential!(qv::Matrix{Float64}*dur::Float64)::Matrix{Float64}*initial
+
+            # return expQ^(length(enumerate(1:dt:dur)))*initial
+        else
+            newDt::Float64 = 1e-7
+            #we must change dt to 1e-3 to prevent LOOOOONG wait times
+            expQ = exponential!(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
+            comp1::Float64 = 0.0
+            comp2::Float64 = 2.0
+            i=0
+            while comp2 > comp1
+                # push!(s, expQ*s[i])
+                c1::Vector{Float64} = (expQ::Matrix{Float64})^(i)*initial
+                c2::Vector{Float64} = (expQ::Matrix{Float64})^(i+1)*initial
+
+                comp1 = c1[n̅]*dt
+                comp2 = c2[n̅]*dt
+
+                i += 1;
+            end
+            if time
+                return i
+            else
+                return comp1
+            end
         end
+    else
+        newDt = 1
+        #we must change dt to 1e-3 to prevent LOOOOONG wait times
+        expQ = exponential!(qv*newDt)
+        s::Vector{Vector{Float64}}=[initial]
+        
+        for (i, _) ∈ enumerate(1:newDt:dur)
+            push!(s, expQ::Matrix{Float64}*s[i])
+        end
+
         return s
     end
 end
@@ -55,35 +110,32 @@ end
 Returns a row vector for the probabilities in each state at steady state
 """
 function simulateSS(rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64}}, args₁::Float64, args₂::Float64, Q::Function, V::T) where T <: Number
-    q = Q(V, rates, args₁, args₂)
+    q::Matrix{Float64} = Q(V, rates, args₁, args₂)::Matrix{Float64}
 
-    isValid(q) ? nothing : (return zeros(length(q[1,:])))
+    # isValid(q, dt) ? nothing : (return zeros(length(q[1,:])))
 
     
     
     #here we choose 1 as our dummy state to fill, but can be any of the states
-    q[1,:] = ones(length(q[1,:]))
-    openstate = zeros(length(q[1,:]))
-    openstate[1] = 1
+    q[1,:] = ones(length(q[1,:]))::Vector{Float64}
+    openstate::Vector{Float64} = zeros(length(q[1,:]))::Vector{Float64}
+    openstate[1]::Float64 = 1
+
     try
-        return (inv(q)* openstate)
+        return (inv(q::Matrix{Float64})::Matrix{Float64}* openstate)
     catch
-        return zeros(length(Q(V)[1,:]))
+        
+        return zeros(length(q[1,:]::Vector{Float64})::Int)::Vector{Float64}
     end
 end
 
 """
 isValid will check to see if the Q and V pair is valid for computing inverse and matrix exponential
 """
-function isValid(q)
-    try
-        inv(q)
-    catch e
-        return false
-    end
+function isValid(q, dur)
 
     try
-        exponential!(q*dt)
+        exponential!(q*dur)
     catch e
         return false
     end
@@ -91,14 +143,14 @@ function isValid(q)
     return true
 end
 
-function consolidatedLoss(params, additionals::Addits)
+function consolidatedLoss(params::Vector{Float64}, additionals::Addits)
     @unpack n, n̅, dt, dataPath, protoData = additionals
 
     rates = Dict{Edge, Tuple{Float64, Float64}}(Edge(i, j) => (0,0) for i in 1:n, j in 1:n if i != j for idx in (2 * (i - 1) * (n - 1) + 2 * (j - 1) + 1):(2 * (i - 1) * (n - 1) + 2 * (j - 1) + 2))
     
-    idx = 1
+    idx::Int = 1
     for e in sort(collect(keys(rates)))
-        rates[e] = (params[idx], params[idx + 1])
+        rates[e] = (params[idx], params[idx + 1])::Tuple{Float64,Float64}
         idx += 2
     end
     args₁ = params[idx]
@@ -110,13 +162,13 @@ function consolidatedLoss(params, additionals::Addits)
     #initialize
     activationErr = 1e3
     #TODO: get groundtruth :WTgv
-    activationProtocol = protoData[:WTgv] #TODO
+    activationProtocol= (protoData::NamedTuple)[:WTgv] #TODO
 
-    y = readdlm(dataPath * activationProtocol["source"])[:, 2]
+    y = (readdlm(dataPath * activationProtocol["source"]::String)::Matrix{Float64})[:, 2]::Vector{Float64}
     
     #simulate activation
-    data = readdlm(dataPath*activationProtocol["source"])
-    initial = simulateSS(rates, args₁, args₂, Q, activationProtocol["v0"])
+    data = readdlm(dataPath*activationProtocol["source"]::String)
+    initial = simulateSS(rates, args₁, args₂, Q, activationProtocol["v0"]::Float64)
 
     steps = []
     for V ∈ data[:,1]
@@ -269,9 +321,9 @@ function consolidatedLoss(params, additionals::Addits)
         initial = simulateSS(rates, args₁, args₂, Q, maxPOProtocol["v0"])
         peaks = []
         for V ∈ data[:,1]
-            gather = simulateStep(rates, args₁, args₂, Q, V, 500, initial, all=true)
-            gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
-            peak = gatherOpens[argmax(gatherOpens)]
+            peak = simulateStep(rates, args₁, args₂, Q, V, 100, initial, peak=true, all=false, time=false)
+            # gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
+            # peak = gatherOpens[argmax(gatherOpens)]
 
             # step = simulateStep(Q, V, protoInfo["step"][1]["dt"], initial)
             push!(peaks, peak)
@@ -334,7 +386,7 @@ function consolidatedLoss(params, additionals::Addits)
     try
         gather = simulateStep(rates, args₁, args₂, Q, -10, 500, initial, all=true)
         gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
-        timeToPeak = argmax(gatherOpens) * 1e-3 #TODO:CHANGE THIS TO THE DT OF THE SIMULATESTEP ALL=TRUE
+        timeToPeak = argmax(gatherOpens) #TODO:CHANGE THIS TO THE DT OF THE SIMULATESTEP ALL=TRUE
 
         ŷ  = timeToPeak
         y=1
