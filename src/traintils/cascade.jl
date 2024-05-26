@@ -13,7 +13,8 @@ function optimizationCascade(consolidatedLoss::Function, paramz::Vector{Float64}
     # best_fitness(res)
     # paramz = best_candidate(res)
 
-    nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = 0*ones(length(paramz)), upper =40*ones(length(paramz))), Optim.Options(iterations=17))
+    nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 490,lower = 0*ones(length(paramz)), upper =1e9*ones(length(paramz))), Optim.Options(time_limit=17))
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 1000,lower = 0*ones(length(paramz)), upper =1000*ones(length(paramz))), Optim.Options(iterations=1))
     
     # params = Optim.minimizer(nres)
     # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=7))

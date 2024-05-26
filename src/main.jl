@@ -4,25 +4,130 @@
 #     Pkg.activate(".")
 #     Pkg.instantiate()
 # end
+
 using Pkg
 Pkg.activate(".")
-# Pkg.instantiate()
+Pkg.instantiate()
 
-using Distributed
-addprocs(50)
+using Graphs, Karnak, Colors, UnPack
+using Optim, Distributed, Dagger, LinearAlgebra
+using YAML, DelimitedFiles, Statistics
+using ExponentialUtilities
+using Logging, Printf, Dates, LoggingExtras
+using ClusterManagers
+# using BlackBoxOptim
+
+p = joinpath("logs/", @sprintf("log_%s.log", Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
+
+formatlogger = FormatLogger(p, append=true) do io, args
+    println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
+end
+consolelogger = FormatLogger(stdout) do io, args
+    println(io, "[", args.level, "] ", args.message)
+end
+logg = TeeLogger(formatlogger, consolelogger)
+
+with_logger(logg) do 
+    @info "This log can be found at $p."
+end
+
+for i ∈ 1:(trunc(Int, length(Sys.cpu_info())/20))
+    addprocs(20; dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",exeflags="--project=$(Base.active_project())", env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"] )
+    addprocs_lsf(40; 
+    dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+    exeflags="--project=$(Base.active_project())", 
+    env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+    throttle=10)
+
+    with_logger(logg) do
+        @info "$(nprocs()) processors loaded. using packages now."
+    end
+
+    @everywhere using Graphs
+    # @everywhere using Karnak, Colors, UnPack
+    @everywhere using Optim, Distributed, Dagger, LinearAlgebra
+    @everywhere using YAML, DelimitedFiles, Statistics
+    # @everywhere using ExponentialUtilities
+    # @everywhere using Logging, Printf, Dates, LoggingExtras
+    # @everywhere using BlackBoxOptim
+    with_logger(logg) do
+        @info "$(nprocs()) processors loaded out of $(60*(trunc(Int, length(Sys.cpu_info())/20))) : $(100 * (nprocs())/(60*(trunc(Int, length(Sys.cpu_info())/20))))% complete"
+    end
+end
+
+
+# addprocs_lsf(100; 
+#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+#     exeflags="--project=$(Base.active_project())", 
+#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+#     throttle=10)
+# with_logger(logg) do
+#     @info "$(nprocs()) now"
+# end
+# addprocs_lsf(100; 
+#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+#     exeflags="--project=$(Base.active_project())", 
+#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+#     throttle=10)
+# with_logger(logg) do
+#     @info "$(nprocs()) now"
+# end
+# addprocs_lsf(100; 
+#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+#     exeflags="--project=$(Base.active_project())", 
+#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+#     throttle=10)
+# with_logger(logg) do
+#     @info "$(nprocs()) now"
+# end
+# addprocs_lsf(50; 
+#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+#     exeflags="--project=$(Base.active_project())", 
+#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+#     throttle=10)
+# with_logger(logg) do
+#     @info "$(nprocs()) now"
+# end
+# addprocs_lsf(30; 
+#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
+#     exeflags="--project=$(Base.active_project())", 
+#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
+#     throttle=10)
+@everywhere include("proto/protoImport.jl")
+@everywhere include("traintils/cascade.jl")
+@everywhere include("traintils/pade.jl")
+with_logger(logg) do
+    @info "running"
+end
+# addprocs_lsf(50; bsub_flags=`-q cpu-compute-long`, throttle=10)
+# with_logger(logg) do
+#     @show "$(nprocs()) now"
+# end
+# addprocs_lsf(50; throttle=10)
+# with_logger(logg) do
+#     @show "$(nprocs()) now"
+# end
+# addprocs_lsf(50; throttle=10)
+# with_logger(logg) do
+#     @show "$(nprocs()) now"
+# end
 
 @everywhere using Graphs, Karnak, Colors, UnPack
 @everywhere using Optim, Distributed, Dagger, LinearAlgebra
 @everywhere using YAML, DelimitedFiles, Statistics
 @everywhere using ExponentialUtilities
 @everywhere using Logging, Printf, Dates, LoggingExtras
-@everywhere using BlackBoxOptim
+# @everywhere using BlackBoxOptim
 
 @everywhere include("proto/protoImport.jl")
 @everywhere include("traintils/cascade.jl")
 @everywhere include("traintils/pade.jl")
 
-@everywhere THREADS = nprocs()
+
+@everywhere THREADS = trunc(Int, nprocs()/2)
+with_logger(logg) do 
+    @info "Threads allocated = $(THREADS)."
+end
 
 #-------------------------#
 
@@ -31,7 +136,7 @@ addprocs(50)
 # dt = 1e-4 #dt has to be set this low to allow for convergence between machines and fitting accuracy
 # dataPath = "res/INaHEK/"
 # protoData = protoImport(dataPath)
-@everywhere out = "out.txt"
+@everywhere out = "out8.txt"
 # newest = "newest.txt"
 
 # mutable struct Addits
@@ -46,21 +151,6 @@ addprocs(50)
 
 @everywhere include("../psogpu/clgpu.jl")
 
-#LOGGING
-p = joinpath("logs/", @sprintf("log_%s.log", Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
-
-formatlogger = FormatLogger(p, append=true) do io, args
-    println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
-end
-consolelogger = FormatLogger(stdout) do io, args
-    println(io, "[", args.level, "] ", args.message)
-end
-logg = TeeLogger(formatlogger, consolelogger)
-
-with_logger(logg) do 
-    @info "This log can be found at $p."
-    @info "Threads allocated = $(THREADS)."
-end
 
 @everywhere local pd
     # local finalLoss
@@ -77,11 +167,11 @@ global ct
 # sethue("pink")
 # drawgraph(g, vertexlabels = vertices(g),vertexshapesizes = (v) -> v ∈ (n̅) ? 25 : 20,vertexfillcolors = (v) -> v ∈ (n̅) && colorant"lightgreen")
 # end 500*s 400*s
-@everywhere n=7
+@everywhere n=8
 @everywhere n̅ = 1
 
 @everywhere begin
-    local pd = rand(2*(n*(n-1))+2)
+    local pd = rand(3*(n*(n-1)))
     try
         local pd = vec(readdlm(out))
     catch
@@ -102,8 +192,6 @@ end
 
 global ct = 0
 while true
-    @everywhere THREADS = nprocs()
-
     local pd = vec(readdlm(out))
     local curloss = consolidatedLoss(pd)
 
@@ -115,7 +203,7 @@ while true
 
     t1 = time()
 
-    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd) for _ in 1:THREADS/2]
+    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd) for _ in 1:THREADS]
     results = map(Distributed.fetch, tasks)
     indecks = argmin([Optim.minimum(results[i]) for i in 1:length(results)])
     
@@ -126,10 +214,10 @@ while true
 
     with_logger(logg) do 
         global ct
-        @info "[$ct] loss = $best. took $(time()-t1) sec. $(THREADS) threads/2."
+        @info "[$ct] loss = $best. took $(time()-t1) sec. $(THREADS) threads."
     end
 
-    curloss > best ? writedlm("out.txt", pd) : nothing
+    curloss > best ? writedlm("out8.txt", pd) : nothing
 
     global ct += 1
 

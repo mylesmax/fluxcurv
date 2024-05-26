@@ -15,16 +15,6 @@ function plotall(f; params::Vector{Float64} = vec(readdlm("out.txt")))
     dt = 1e-4
     title::String = "n=$n , n̅=$n̅ , total model loss = $(weightedAvg)"
     
-    rates = Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64}}(Edge(i::Int64, j::Int64) => (0,0) for i in 1:n, j in 1:n if i != j for idx in (2 * (i - 1) * (n - 1) + 2 * (j - 1) + 1):(2 * (i - 1) * (n - 1) + 2 * (j - 1) + 2))
-
-    idx::Int = 1
-    for e in sort(collect(keys(rates)))::Vector{Graphs.SimpleGraphs.SimpleEdge}
-        rates[e] = (params[idx], params[idx + 1])::Tuple{Float64,Float64}
-        idx += 2
-    end
-    args₁ = params[idx]
-    args₂ = params[idx + 1]
-    
     scalingfactor = 1
 
     !@isdefined(f) ? f= Figure(size=(1600,800),fontsize=8 ./scalingfactor) : nothing
