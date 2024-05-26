@@ -15,14 +15,19 @@ Returns a row vector for the probabilities in each state at the end of the durat
 
 function simulateStep(Q::Function, V::S, dur::T, initial::Vector{Float64}; all=false::Bool) where {S, T <: Number}
     isValid(Q, V) ? nothing : (return initial)
-    
-    expQ = fastExpm(Q(V)*dt)
+    qv = Q(V)
+    expQ = exponential!(qv*dt)
     s = [initial]
-    for (i, _) ∈ enumerate(1:1:dur)
-        push!(s, expQ*s[i])
+    if !all
+        return expQ^(length(enumerate(1:dt:dur)))*initial
+    else
+        #we must change dt to 1e-3 to prevent LOOOOONG wait times
+        expQ = exponential!(qv*1e-3)
+        for (i, _) ∈ enumerate(1:1e-3:dur)
+            push!(s, expQ*s[i])
+        end
+        return s
     end
-    
-    !all ? (return s[end]) : (return s)
 end
 
 # """
@@ -79,7 +84,7 @@ function isValid(Q,V)
     end
 
     try
-        fastExpm(q*dt)
+        exponential!(q*dt)
     catch e
         return false
     end

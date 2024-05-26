@@ -23,11 +23,13 @@ end
 function activation(protoInfo::Dict{Any, Any}, Q::Function; range=StepRangeLen(0,1e-6,0)::StepRangeLen)
     data = readdlm(dataPath*protoInfo["source"])
     initial = simulateSS(Q, protoInfo["v0"])
+    
 
     (range==StepRangeLen(0,1e-6,0)) ? range = data[:,1] : nothing
     steps = []
-    for V ∈ range
+    for V ∈ data[:,1]
         step = simulateStep(Q, V, protoInfo["step"][1]["dt"], initial)
+        V, protoInfo["step"][1]["dt"], step
         push!(steps, step)
     end
 
@@ -204,7 +206,7 @@ function ttpeak(Q::Function)
     try
         gather = simulateStep(Q, -10, 500, initial, all=true)
         gatherOpens = [gather[i][n̅] for i in 1:size(gather)[1]]
-        timeToPeak = argmax(gatherOpens)
+        timeToPeak = argmax(gatherOpens) * 1e-3 #TODO:CHANGE THIS TO THE DT OF THE SIMULATESTEP ALL=TRUE
 
         push!(ttpS, timeToPeak)
         ttpS = convert(Vector{Float64}, ttpS)

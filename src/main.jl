@@ -2,17 +2,17 @@ using Pkg
 Pkg.activate(".")
 
 using Graphs, Karnak, Colors, BlackBoxOptim, Distributed, Dagger
-using Flux, FastExpm, YAML, DelimitedFiles
+using Flux, FastExpm, YAML, DelimitedFiles, ExponentialUtilities
 import Flux.Losses: mse
 
 begin
 
-    global n=8
+    global n=7
     global n̅ = 1
     global rates = Dict{Edge, Tuple{Float64, Float64}}()
     global args₁ = 2
     global args₂ = -4
-    global dt = 0.0001
+    global dt = 1e-4
     global dataPath = "res/INaHEK/"
 
     include("traintils/param.jl")

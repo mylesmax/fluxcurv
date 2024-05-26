@@ -5,7 +5,7 @@ function inacError(protoInfo::Dict{Any, Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for Inactivation: $(loss)")
 
@@ -19,7 +19,7 @@ function activationError(protoInfo::Dict{Any, Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for Activation: $(loss)")
 
@@ -33,7 +33,7 @@ function recoveryError(protoInfo::Dict{Any,Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for Recovery: $(loss)")
 
@@ -47,7 +47,7 @@ function recoveryUDBError(protoInfo::Dict{Any,Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for Recovery from UDB: $(loss)")
 
@@ -61,7 +61,7 @@ function maxPOError(protoInfo::Dict{Any,Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for maxPO: $(loss)")
 
@@ -75,7 +75,7 @@ function fall(protoInfo::Dict{Any,Any})
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for fall: $(loss)")
 
@@ -89,7 +89,7 @@ function ttp()
     # δ = readdlm(dataPath*protoInfo["source"])[:, 3]
 
     loss = mean((ŷ .- y) .^ 2)
-    (isnan(loss) | isinf(loss)) ? loss = 1e2 : nothing
+    (isnan(loss) | isinf(loss)) ? loss = 1e3 : nothing
 
     # println("Error determined for fall: $(loss)")
 
