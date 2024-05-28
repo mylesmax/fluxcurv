@@ -1,4 +1,4 @@
-function optimizationCascade(consolidatedLoss::Function, paramz::Vector{Float64})
+function optimizationCascade(consolidatedLoss::Function, paramz::Vector{Float64}, additionals::Vector{Int64})
     # res = bboptimize(
     #             consolidatedLoss;
     #             NumDimensions=86,
@@ -12,19 +12,30 @@ function optimizationCascade(consolidatedLoss::Function, paramz::Vector{Float64}
     #     )
     # best_fitness(res)
     # paramz = best_candidate(res)
+    # optf = OptimizationFunction(consolidatedLossTest, Optimization.AutoReverseDiff())
+    # prob = OptimizationProblem(optf, pd, additionals, lb = 0*ones(length(paramz)), ub = 1e9*ones(length(paramz)))
+    # sol = solve(prob, ParticleSwarm())
+    # sol.objective
 
-    nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 490,lower = 0*ones(length(paramz)), upper =1e9*ones(length(paramz))), Optim.Options(time_limit=17))
+
+
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 100000,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(iterations=34))
+    
+    nres = optimize(x -> consolidatedLoss(x, additionals), paramz, ParticleSwarm(n_particles = 10000,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(iterations=34))
+    
+    
+    
+    
+    # nres = fetch(nres)
+
+    # paramz = Optim.minimizer(nres)
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(time_limit=7))
+    # paramz = Optim.minimizer(nres)
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(time_limit=7))
+    # paramz = Optim.minimizer(nres)
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(time_limit=7))
+    # paramz = Optim.minimizer(nres)
+    # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(time_limit=7))
     # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 1000,lower = 0*ones(length(paramz)), upper =1000*ones(length(paramz))), Optim.Options(iterations=1))
-    
-    # params = Optim.minimizer(nres)
-    # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=7))
-    
-    # params = Optim.minimizer(nres)
-    # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=3))
-    
-    
-    # with_logger(logg) do 
-    #     @info "[Thread $(myid())] step 3 done, waiting, $(Optim.minimum(nres))"
-    # end
     return nres
 end

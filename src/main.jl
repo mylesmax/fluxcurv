@@ -1,24 +1,19 @@
-# using Distributed
-# @everywhere begin
-#     using Pkg
-#     Pkg.activate(".")
-#     Pkg.instantiate()
-# end
-
 using Pkg
 Pkg.activate(".")
-Pkg.instantiate()
 
-using Graphs, Karnak, Colors, UnPack
-using Optim, Distributed, Dagger, LinearAlgebra
-using YAML, DelimitedFiles, Statistics
-using ExponentialUtilities
-using Logging, Printf, Dates, LoggingExtras
-using ClusterManagers
-# using BlackBoxOptim
+@everywhere using Graphs
+@everywhere using Karnak, Colors, UnPack
+@everywhere using Optim, Distributed, Dagger, LinearAlgebra
+@everywhere using YAML, DelimitedFiles, Statistics
+@everywhere using ExponentialUtilities
+@everywhere using Logging, Printf, Dates, LoggingExtras
+@everywhere include("traintils/cascade.jl")
+@everywhere include("traintils/pade.jl")
+@everywhere include("traintils/loss.jl")
 
-p = joinpath("logs/", @sprintf("log_%s.log", Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
-
+idd = Dates.format(now(), "mmddss")
+@everywhere modelID = $idd
+p = joinpath("logs/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
 formatlogger = FormatLogger(p, append=true) do io, args
     println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
 end
@@ -26,138 +21,34 @@ consolelogger = FormatLogger(stdout) do io, args
     println(io, "[", args.level, "] ", args.message)
 end
 logg = TeeLogger(formatlogger, consolelogger)
-
 with_logger(logg) do 
     @info "This log can be found at $p."
+    @info "nprocs = $(nprocs())"
 end
-
-for i ∈ 1:(trunc(Int, length(Sys.cpu_info())/20))
-    addprocs(20; dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",exeflags="--project=$(Base.active_project())", env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"] )
-    addprocs_lsf(40; 
-    dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-    exeflags="--project=$(Base.active_project())", 
-    env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-    throttle=10)
-
-    with_logger(logg) do
-        @info "$(nprocs()) processors loaded. using packages now."
-    end
-
-    @everywhere using Graphs
-    # @everywhere using Karnak, Colors, UnPack
-    @everywhere using Optim, Distributed, Dagger, LinearAlgebra
-    @everywhere using YAML, DelimitedFiles, Statistics
-    # @everywhere using ExponentialUtilities
-    # @everywhere using Logging, Printf, Dates, LoggingExtras
-    # @everywhere using BlackBoxOptim
-    with_logger(logg) do
-        @info "$(nprocs()) processors loaded out of $(60*(trunc(Int, length(Sys.cpu_info())/20))) : $(100 * (nprocs())/(60*(trunc(Int, length(Sys.cpu_info())/20))))% complete"
-    end
-end
-
-
-# addprocs_lsf(100; 
-#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-#     exeflags="--project=$(Base.active_project())", 
-#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-#     throttle=10)
-# with_logger(logg) do
-#     @info "$(nprocs()) now"
-# end
-# addprocs_lsf(100; 
-#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-#     exeflags="--project=$(Base.active_project())", 
-#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-#     throttle=10)
-# with_logger(logg) do
-#     @info "$(nprocs()) now"
-# end
-# addprocs_lsf(100; 
-#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-#     exeflags="--project=$(Base.active_project())", 
-#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-#     throttle=10)
-# with_logger(logg) do
-#     @info "$(nprocs()) now"
-# end
-# addprocs_lsf(50; 
-#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-#     exeflags="--project=$(Base.active_project())", 
-#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-#     throttle=10)
-# with_logger(logg) do
-#     @info "$(nprocs()) now"
-# end
-# addprocs_lsf(30; 
-#     dir="/storage1/jonsilva/Active/m.max/Projects/fluxcurv",
-#     exeflags="--project=$(Base.active_project())", 
-#     env=["JULIA_DEPOT_PATH"=>"/home/research/m.max/.julia"],
-#     throttle=10)
-@everywhere include("proto/protoImport.jl")
-@everywhere include("traintils/cascade.jl")
-@everywhere include("traintils/pade.jl")
-with_logger(logg) do
-    @info "running"
-end
-# addprocs_lsf(50; bsub_flags=`-q cpu-compute-long`, throttle=10)
-# with_logger(logg) do
-#     @show "$(nprocs()) now"
-# end
-# addprocs_lsf(50; throttle=10)
-# with_logger(logg) do
-#     @show "$(nprocs()) now"
-# end
-# addprocs_lsf(50; throttle=10)
-# with_logger(logg) do
-#     @show "$(nprocs()) now"
-# end
-
-@everywhere using Graphs, Karnak, Colors, UnPack
-@everywhere using Optim, Distributed, Dagger, LinearAlgebra
-@everywhere using YAML, DelimitedFiles, Statistics
-@everywhere using ExponentialUtilities
-@everywhere using Logging, Printf, Dates, LoggingExtras
-# @everywhere using BlackBoxOptim
-
-@everywhere include("proto/protoImport.jl")
-@everywhere include("traintils/cascade.jl")
-@everywhere include("traintils/pade.jl")
 
 
 @everywhere THREADS = trunc(Int, nprocs()/2)
 with_logger(logg) do 
-    @info "Threads allocated = $(THREADS)."
+    @info "Packages and prereqs loaded, running with allocated threads = $(THREADS)."
 end
 
-#-------------------------#
-
-# n=7
-# n̅ = 1
-# dt = 1e-4 #dt has to be set this low to allow for convergence between machines and fitting accuracy
-# dataPath = "res/INaHEK/"
-# protoData = protoImport(dataPath)
-@everywhere out = "out8.txt"
-# newest = "newest.txt"
-
-# mutable struct Addits
-#     n::Int
-#     n̅::Int
-#     dt::Float64
-#     dataPath::String
-#     protoData::NamedTuple
-# end
-
-#-------------------------#
-
-@everywhere include("../psogpu/clgpu.jl")
-
-
 @everywhere local pd
-    # local finalLoss
-    # local finalParams
-global ct
+n = 0 #make sure to also change in loss.jl and (for later) graph.jl and protos.jl
+if length(ARGS) > 0
+    n = parse(Int, ARGS[1])
+else
+    n = 7
+end
 
-# additionals = Addits(n, n̅, dt, dataPath, protoData)
+@everywhere n= $n
+
+with_logger(logg) do
+    @info "n set to $n"
+end
+@everywhere n̅ = 1
+@everywhere global additionals = [n, n̅]
+@everywhere out = "models/May26/$(modelID)_n=$n.model"
+global ct
 
 # #GRAPH
 # s=1.5
@@ -167,263 +58,43 @@ global ct
 # sethue("pink")
 # drawgraph(g, vertexlabels = vertices(g),vertexshapesizes = (v) -> v ∈ (n̅) ? 25 : 20,vertexfillcolors = (v) -> v ∈ (n̅) && colorant"lightgreen")
 # end 500*s 400*s
-@everywhere n=8
-@everywhere n̅ = 1
 
-@everywhere begin
-    local pd = rand(3*(n*(n-1)))
-    try
-        local pd = vec(readdlm(out))
-    catch
-        writedlm(out, pd)
-
-        with_logger(logg) do
-            @info "wrote new pd to $out"
-        end
-    end
+@everywhere pd = rand(3*(n*(n-1)))
+    
+@everywhere (n == 7) ? (pd = vec(readdlm("models/good7State.txt")); println("pd absorbed from good7state")) : (pd = vec(readdlm("out8.txt")); println("pd absorbed from out8"))
+writedlm(out, pd)
+with_logger(logg) do
+    @info "wrote new pd to $out"
 end
-
-# additionals = Int[n, n̅]
-# finalParams = params
-# # finalLoss = consolidatedLoss(params, additionals)
-# finalLoss = consolidatedLoss(params)
-# ThreadOutput = NamedTuple{(:fitness, :params), Tuple{Float64, Any}}
-
 
 global ct = 0
 while true
     local pd = vec(readdlm(out))
-    local curloss = consolidatedLoss(pd)
+    local curloss = consolidatedLoss(pd, additionals)
 
-    with_logger(logg) do
-        # @info "[$ct] instantiated with $(consolidatedLoss(params, additionals))"
-        global ct
-        @info "[$ct] instantiated with $(curloss)"
-    end
+    # with_logger(logg) do
+    #     global ct
+    #     @info "[$ct] instantiated with $(curloss)"
+    # end
 
     t1 = time()
 
-    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd) for _ in 1:THREADS]
+    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd, additionals) for _ in 1:THREADS]
     results = map(Distributed.fetch, tasks)
     indecks = argmin([Optim.minimum(results[i]) for i in 1:length(results)])
     
     local pd = Optim.minimizer(results[indecks])
     best = Optim.minimum(results[indecks])
-    # best == consolidatedLoss(params) ? (@show best) : nothing
-    
 
     with_logger(logg) do 
         global ct
         @info "[$ct] loss = $best. took $(time()-t1) sec. $(THREADS) threads."
     end
 
-    curloss > best ? writedlm("out8.txt", pd) : nothing
+    writedlm(out, pd)
 
     global ct += 1
-
-    # bestFitness = Inf
-    # bestParams = params
-    # bestWorker = -1
-    
-    # threadOut = Vector{Union{Nothing, ThreadOutput}}(undef, Threads.nthreads())
-    # fill!(threadOut, nothing)
-    
-    # with_logger(logg) do
-    #     @info "[$ct] training"
-    # end
-    
-    # lck = ReentrantLock()
-    # @sync for i ∈ 1:1
-    #     # res = bboptimize(
-    #     #         consolidatedLoss, params;
-    #     #         NumDimensions=length(params),
-    #     #         # MaxSteps=5000,
-    #     #         MaxTime = 34,
-    #     #         SearchRange = (-100, 100),
-    #     #         TraceMode = :silent,
-    #     #         PopulationSize = 17000,
-    #     #         Method = :xnes,
-    #     #         lambda = 100,
-    #     # )
-
-    #     # Threads.lock(lck) do
-    #     #     threadOut[Threads.threadid()] = (fitness = best_fitness(res), params = best_candidate(res))
-    #     #     # threadOut[Threads.threadid()] = (fitness = Optim.minimum(res), params = Optim.minimizer(res))
-    #     #     # with_logger(logg) do
-    #     #     #     # @info "[Thread $(Threads.threadid())] Locked in fitness $(best_fitness(res))."
-    #     #     #     # @info "[Thread $(Threads.threadid())] Locked in fitness $(Optim.minimum(res))."
-    #     #     # end
-    #     # end
-
-
-    #     # params = Optim.minimizer(nres)
-    #     nres = Dagger.@par consolidatedLoss(params)
-    
-    #     Dagger.collect.(nres)
-    #     nres = Dagger.@shard optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=7))
-    #     j = Dagger.@spawn Dagger.fetch(nres)
-
-        
-        
-
-        
-
-        
-
-    #     Dagger.fetch(j)
-
-    #     optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 11,lower = -20*ones(length(paramz)), upper =20*ones(length(paramz))), Optim.Options(time_limit=7))
-    #     with_logger(logg) do 
-    #         @info "[Thread $(myid())] step 1 done, $(Optim.minimum(nres))"
-    #     end
-
-    #     # @show Optim.minimum(nres)
-    #     params = Optim.minimizer(nres)
-    #     nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=7))
-    #     with_logger(logg) do 
-    #         @info "[Thread $(myid())] step 2 done, $(Optim.minimum(nres))"
-    #     end
-    #     # @show Optim.minimum(nres)
-    #     params = Optim.minimizer(nres)
-    #     nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -20*ones(length(params)), upper =20*ones(length(params))), Optim.Options(time_limit=3))
-    #     with_logger(logg) do 
-    #         @info "[Thread $(myid())] step 3 done, waiting, $(Optim.minimum(nres))"
-    #     end
-    #     threadOut[myid()] = (fitness = Optim.minimum(nres), params = Optim.minimizer(nres))
-        
-    #     # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=2))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=2))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=7))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=2))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=2))
-    #     # # # @show Optim.minimum(nres)
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # # params = Optim.minimizer(nres)
-    #     # # nres = optimize(consolidatedLoss, params, ParticleSwarm(n_particles = 11,lower = -17*ones(length(params)), upper =17*ones(length(params))), Optim.Options(time_limit=3))
-    #     # Optim.minimum(nres)
-    #     # # with_logger(logg) do
-    #     # #     @info "[Thread $(Threads.threadid())] I just completed PSO with loss $(Optim.minimum(res))."
-    #     # # end
-
-    #     # # nres = optimize(x -> consolidatedLoss(x, additionals), Optim.minimizer(res), NelderMead(), Optim.Options(time_limit=35))
-    #     # # with_logger(logg) do
-    #     # #     @info "[Thread $(Threads.threadid())] I just completed NM with loss $(Optim.minimum(nres))."
-    #     # # end
-
-    #     # Threads.lock(lck) do
-    #     #     threadOut[Threads.threadid()] = (fitness = Optim.minimum(nres), params = Optim.minimizer(nres))
-    #     #     # threadOut[Threads.threadid()] = (fitness = Optim.minimum(res), params = Optim.minimizer(res))
-    #     #     # with_logger(logg) do
-    #     #     #     @info "[Thread $(Threads.threadid())] Locked in fitness $(Optim.minimum(nres))."
-    #     #     #     # @info "[Thread $(Threads.threadid())] Locked in fitness $(Optim.minimum(res))."
-    #     #     # end
-    #     # end
-    # end
-    
-    # @info "[$ct] training round concluded on $(Threads.nthreads()) threads, determining best"
-
-    # # consolidate = Vector{Union{Nothing, ThreadOutput}}(undef, Threads.nthreads())
-    # # fill!(consolidate, nothing)
-    # # for (i, output) in enumerate(threadOut)
-    # #     if output !== nothing
-    # #         consolidate[i] = (fitness = loss(output.params), params = output.params)
-    # #     end
-    # # end
-
-    
-
-    # for (i, output) in enumerate(threadOut)
-    #     # with_logger(logg) do 
-    #     #     @info output.fitness
-    #     # end
-    #     # with_logger(logg) do
-    #     #     # @info "[$i] computed loss $(consolidatedLoss(output.params, additionals)), fitness $(output.fitness)"
-    #     #     @info "[Thread $i] computed loss $(consolidatedLoss(output.params)), fitness $(output.fitness)"
-    #     # end
-
-    #     if output !== nothing && output.fitness < bestFitness
-    #         bestFitness = output.fitness
-    #         bestParams = output.params
-    #     end
-    # end
-
-    # if finalLoss > bestFitness
-    #     finalLoss = bestFitness
-    #     finalParams = bestParams
-    #     params = finalParams
-
-    #     with_logger(logg) do
-    #         @info "[$ct] loss updated as $finalLoss, updating $out and $newest"
-    #     end
-
-    #     writedlm(out, finalParams)
-    #     writedlm(newest, finalLoss)
-    # else
-    #     with_logger(logg) do
-    #         @info "[$ct] no change. current best $finalLoss < $bestFitness"
-    #     end
-    # end
-    # with_logger(logg) do
-    #     @info "[$ct] ---------------------------- END ----------------------------"
-    # end
-    # ct += 1;
 end
-
-# for i ∈ 1:n
-#     for j ∈ 1:n
-#         i != j ? (@show i, j, r(i,j)) : nothing
-#     end
-# end
-
 
 # """
 # PLOTTING?
