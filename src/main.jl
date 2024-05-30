@@ -13,7 +13,7 @@ Pkg.activate(".")
 
 idd = Dates.format(now(), "mmddss")
 @everywhere modelID = $idd
-p = joinpath("logs/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
+p = joinpath("logs-2/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
 formatlogger = FormatLogger(p, append=true) do io, args
     println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
 end

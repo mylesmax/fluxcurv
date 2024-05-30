@@ -428,28 +428,28 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     # @show fallErr
 
 
-    """
-    TIME TO PEAK PROTOCOL
-    """
-    #initialize
-    ttpErr = 1e3
+    # """
+    # TIME TO PEAK PROTOCOL
+    # """
+    # #initialize
+    # ttpErr = 1e3
     
-    initial = simulateSS(dt, rates, Q, -100)
+    # initial = simulateSS(dt, rates, Q, -100)
 
-    y_TTP = [1]
-    ŷ_TTP = [0]
+    # y_TTP = [1]
+    # ŷ_TTP = [0]
 
-    ttpS = []
-    try
-        timeToPeak::Float64 = simulateStep(dt, rates, Q, -10, 500.0, initial, peak=true,time=true)::Float64
+    # ttpS = []
+    # try
+    #     timeToPeak::Float64 = simulateStep(dt, rates, Q, -10, 500.0, initial, peak=true,time=true)::Float64
         
-        ŷ_TTP = [timeToPeak]
-        ttpErr = mean((timeToPeak .- 1) .^ 2)
-        (isnan(ttpErr) | isinf(ttpErr)) ? ttpErr = 1e3 : nothing
-    catch
-        ttpErr = 100
-    end
-    # @show ttpErr
+    #     ŷ_TTP = [timeToPeak]
+    #     ttpErr = mean((timeToPeak .- 1) .^ 2)
+    #     (isnan(ttpErr) | isinf(ttpErr)) ? ttpErr = 1e3 : nothing
+    # catch
+    #     ttpErr = 100
+    # end
+    # # @show ttpErr
 
     closed = simulateSS(dt, rates, Q, -100.0)
     activationErr += mean((closed[n̅] .- 0) .^ 2)
@@ -463,7 +463,7 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         (2 * recoveryUDBErr),
         (1* maxPOErr),
         (4 * fallErr),
-        (1 * ttpErr)
+        # (1 * ttpErr)
     ]
     weights::Vector{Float64} = [
         4,
@@ -471,7 +471,8 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         3,
         2,
         1,
-        4
+        4,
+        # 1
     ]
     weightedAvg::Float64 = sum(errors::Vector{Float64})::Float64 / sum(weights::Vector{Float64})::Float64
 
