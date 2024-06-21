@@ -1,0 +1,76 @@
+[Info] This log can be found at logs-3/0618939-log_2024-06-18_23-24-42.log.
+[Info] nprocs = 201
+[Info] Packages and prereqs loaded, running with allocated threads = 100.
+[Info] n set to 9
+[Info] wrote new pd to models/Jun18/0618939_n=9.model
+[Info] [0] loss = 0.09861434465068852. took 8532.402814865112 sec. 100 threads.
+[Info] [1] loss = 0.07689534275983434. took 9643.88082408905 sec. 100 threads.
+[Info] [2] loss = 0.05907884603988921. took 9940.826792001724 sec. 100 threads.
+[Info] [3] loss = 0.053479676295399806. took 9723.43836903572 sec. 100 threads.
+[Info] [4] loss = 0.05133050476536057. took 10286.281879901886 sec. 100 threads.
+[Info] [5] loss = 0.048091867866488794. took 10252.44466996193 sec. 100 threads.
+[Info] [6] loss = 0.04789911836899379. took 10507.623564958572 sec. 100 threads.
+[Info] [7] loss = 0.047345347693223794. took 10394.33877491951 sec. 100 threads.
+[Info] [8] loss = 0.04678131236211615. took 10367.744297981262 sec. 100 threads.
+[Info] [9] loss = 0.0455296878479354. took 10445.749251842499 sec. 100 threads.
+[Info] [10] loss = 0.04438636534597202. took 10244.136033058167 sec. 100 threads.
+[Info] [11] loss = 0.04172809566794671. took 10323.240718126297 sec. 100 threads.
+[Info] [12] loss = 0.041190395252291144. took 10399.287635087967 sec. 100 threads.
+[Info] [13] loss = 0.037150435048043426. took 10472.066488027573 sec. 100 threads.
+[Info] [14] loss = 0.03464032636188867. took 10588.318212985992 sec. 100 threads.
+
+------------------------------------------------------------
+Sender: LSF System <lsfadmin@seas.wustl.edu>
+Subject: Job 860629: <#!/bin/bash;#BSUB -q cpu-compute;#BSUB -n 200;#BSUB -R '(!gpu)';#BSUB -R "rusage[mem=64]";#BSUB -o /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/output_%J.log;#BSUB -e /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/error_%J.log; cd /storage1/jonsilva/Active/m.max/projects/fluxcurv; JULIA_DEPOT_PATH="/home/research/m.max/.julia" JULIA_WORKER_TIMEOUT='1700' /storage1/jonsilva/Active/m.max/julia-1.10.2/bin/julia --project="/storage1/jonsilva/Active/m.max/Projects/fluxcurv" --procs 200 src/main.jl 9> in cluster <SEAS-COMPUTE> Exited
+
+Job <#!/bin/bash;#BSUB -q cpu-compute;#BSUB -n 200;#BSUB -R '(!gpu)';#BSUB -R "rusage[mem=64]";#BSUB -o /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/output_%J.log;#BSUB -e /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/error_%J.log; cd /storage1/jonsilva/Active/m.max/projects/fluxcurv; JULIA_DEPOT_PATH="/home/research/m.max/.julia" JULIA_WORKER_TIMEOUT='1700' /storage1/jonsilva/Active/m.max/julia-1.10.2/bin/julia --project="/storage1/jonsilva/Active/m.max/Projects/fluxcurv" --procs 200 src/main.jl 9> was submitted from host <lotus.engr.wustl.edu> by user <m.max> in cluster <SEAS-COMPUTE> at Tue Jun 18 23:20:59 2024
+Job was executed on host(s) <28*amd128-2203.engr.wustl.edu>, in queue <cpu-compute>, as user <m.max> in cluster <SEAS-COMPUTE> at Tue Jun 18 23:20:59 2024
+                            <88*amd128-2201.engr.wustl.edu>
+                            <84*amd128-2303.engr.wustl.edu>
+</home/research/m.max> was used as the home directory.
+</storage1/jonsilva/Active/m.max/Projects/fluxcurv> was used as the working directory.
+Started at Tue Jun 18 23:20:59 2024
+Terminated at Thu Jun 20 19:25:50 2024
+Results reported at Thu Jun 20 19:25:50 2024
+
+Your job looked like:
+
+------------------------------------------------------------
+# LSBATCH: User input
+#!/bin/bash
+#BSUB -q cpu-compute
+#BSUB -n 200
+#BSUB -R '(!gpu)'
+#BSUB -R "rusage[mem=64]"
+#BSUB -o /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/output_%J.log
+#BSUB -e /storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/error_%J.log
+
+cd /storage1/jonsilva/Active/m.max/projects/fluxcurv
+
+JULIA_DEPOT_PATH="/home/research/m.max/.julia" JULIA_WORKER_TIMEOUT='1700' /storage1/jonsilva/Active/m.max/julia-1.10.2/bin/julia --project="/storage1/jonsilva/Active/m.max/Projects/fluxcurv" --procs 200 src/main.jl 9
+------------------------------------------------------------
+
+TERM_OWNER: job killed by owner.
+Exited with exit code 143.
+
+Resource usage summary:
+
+    CPU time :                                   14819482.00 sec.
+    Max Memory :                                 138 GB
+    Average Memory :                             105.01 GB
+    Total Requested Memory :                     192.00 GB
+    Delta Memory :                               54.00 GB
+    Max Swap :                                   -
+    Max Processes :                              206
+    Max Threads :                                471
+    Run time :                                   158687 sec.
+    Turnaround time :                            158691 sec.
+
+The output (if any) is above this job summary.
+
+
+
+PS:
+
+Read file </storage1/jonsilva/Active/m.max/Projects/fluxcurv/logs-3/bsub/error_860629.log> for stderr output of this job.
+

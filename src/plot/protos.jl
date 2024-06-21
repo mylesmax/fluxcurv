@@ -6,12 +6,12 @@ using CairoMakie
 PLOTTING
 """
 
-function plotall(f, params, n, n̅)
-    a = consolidatedLoss(params, returnforPlotting=true)
+function plotall(f, params, n_var, n̅_var)
+    a = consolidatedLoss(params, [n_var, n̅_var], returnforPlotting=true)
     weightedAvg, y_activation, y_inactivation, y_recovery, y_recoveryUDB, y_MAXPO, y_TTP, y_FALL, ŷ_activation, ŷ_inactivation, ŷ_recovery, ŷ_recoveryUDB, ŷ_MAXPO, ŷ_TTP, ŷ_FALL = a
 
     dt = 1e-4
-    title::String = "n=$n , n̅=$n̅ , total model loss = $(weightedAvg)"
+    title::String = "n=$n_var , n̅=$n̅_var , total model loss = $(weightedAvg)"
     
     scalingfactor = 1
 
@@ -153,3 +153,35 @@ f =  Figure(size=(1200,800))
 plotall(f, vec(readdlm("out8.txt")), 8 , 1)
 
 plotall(f, vec(readdlm("models/good7State.txt")), 7 , 1)
+
+n=17
+plotall(f, vec(readdlm("/storage1/jonsilva/Active/m.max/Projects/fluxcurv/models/Jun4/0609961_n=17.model")),17,1)
+
+paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
+plotall(f, vec(readdlm(paff*"models/Jun16/061629_n=7.model")), 7,1)
+
+
+
+plotall(f, vec(readdlm(paff*"models/Jun18/0618872_n=7.model")), 7,1)
+plotall(f, vec(readdlm(paff*"models/Jun18/0618939_n=9.model")), 9, 1)
+plotall(f, vec(readdlm(paff*"models/Jun18/061834_n=4.model")), 4, 1)
+plotall(f, vec(readdlm(paff*"models/Jun18/0619484_n=17.model")), 17, 1)
+
+
+
+plotall(f, pd, 7, 1)
+
+for i ∈ 1:200
+    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
+    pd = Optim.minimizer(fetch(opt))
+    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
+    pd = Optim.minimizer(fetch(opt))
+    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
+    pd = Optim.minimizer(fetch(opt))
+    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
+    pd = Optim.minimizer(fetch(opt))
+
+    @show Optim.minimum(fetch(opt))
+    writedlm("yessir.txt", pd)
+end
+plotall(f, pd, 7, 1)

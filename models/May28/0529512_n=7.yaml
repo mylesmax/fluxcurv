@@ -6,8 +6,8 @@ minimum:
   - 0.009725802643501523
   - 0.00987142857142857
   - 0.9801
-iteration: 10
-f calls: 999990
+iteration: 20
+f calls: 1999980
 total minimum: 0.12386364986572462
 minimizer:
   - 1.0768038927587327

@@ -21,7 +21,7 @@ function optimizationCascade(consolidatedLoss::Function, paramz::Vector{Float64}
 
     # nres = optimize(consolidatedLoss, paramz, ParticleSwarm(n_particles = 100000,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(iterations=34))
     
-    nres = optimize(x -> consolidatedLoss(x, additionals), paramz, ParticleSwarm(n_particles = 10000,lower = 0*ones(length(paramz)), upper =[]), Optim.Options(iterations=34))
+    nres = optimize(x -> consolidatedLoss(x, additionals), paramz, ParticleSwarm(n_particles = 1111,lower = 0*ones(length(paramz)), upper =50*ones(length(paramz))), Optim.Options(iterations=10))
     
     
     

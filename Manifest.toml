@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "b55a1fcddd231c2204ce377a0fc9dccb0ff0c678"
+project_hash = "692d8b239e5a633d62fa022933cf51ee07df631d"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "daf26bbdec60d9ca1c0003b70f389d821ddb4224"
@@ -343,6 +343,12 @@ weakdeps = ["SparseArrays"]
     [deps.ChainRulesCore.extensions]
     ChainRulesCoreSparseArraysExt = "SparseArrays"
 
+[[deps.ChainRulesOverloadGeneration]]
+deps = ["ChainRulesCore"]
+git-tree-sha1 = "3ea2d5853a4d132aedd294047bab373333e92027"
+uuid = "f51149dc-2911-5acf-81fc-2076a2a81d4f"
+version = "0.1.4"
+
 [[deps.Chemfiles]]
 deps = ["AtomsBase", "Chemfiles_jll", "DocStringExtensions", "PeriodicTable", "Unitful", "UnitfulAtomic"]
 git-tree-sha1 = "82fe5e341c793cb51149d993307da9543824b206"
@@ -597,6 +603,12 @@ git-tree-sha1 = "9e2f36d3c96a820c678f2f1f1782582fcf685bae"
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 version = "1.9.1"
 
+[[deps.Dictionaries]]
+deps = ["Indexing", "Random", "Serialization"]
+git-tree-sha1 = "1f3b7b0d321641c1f2e519f7aed77f8e1f6cb133"
+uuid = "85a47980-9c8c-11e8-2b9f-f7ca1fa99fb4"
+version = "0.3.29"
+
 [[deps.DiffEqBase]]
 deps = ["ArrayInterface", "ConcreteStructs", "DataStructures", "DocStringExtensions", "EnumX", "EnzymeCore", "FastBroadcast", "FastClosures", "ForwardDiff", "FunctionWrappers", "FunctionWrappersWrappers", "LinearAlgebra", "Logging", "Markdown", "MuladdMacro", "Parameters", "PreallocationTools", "PrecompileTools", "Printf", "RecursiveArrayTools", "Reexport", "SciMLBase", "SciMLOperators", "Setfield", "SparseArrays", "Static", "StaticArraysCore", "Statistics", "Tricks", "TruncatedStacktraces"]
 git-tree-sha1 = "03b9555f4c3a7c2f530bb1ae13e85719c632f74e"
@@ -699,6 +711,24 @@ version = "0.25.108"
     ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
     DensityInterface = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
     Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[deps.DistributionsAD]]
+deps = ["Adapt", "ChainRules", "ChainRulesCore", "Compat", "Distributions", "FillArrays", "LinearAlgebra", "PDMats", "Random", "Requires", "SpecialFunctions", "StaticArrays", "StatsFuns", "ZygoteRules"]
+git-tree-sha1 = "f4dd7727b07b4b7fff5ff4149118ee06e83dfab7"
+uuid = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
+version = "0.6.55"
+
+    [deps.DistributionsAD.extensions]
+    DistributionsADForwardDiffExt = "ForwardDiff"
+    DistributionsADLazyArraysExt = "LazyArrays"
+    DistributionsADReverseDiffExt = "ReverseDiff"
+    DistributionsADTrackerExt = "Tracker"
+
+    [deps.DistributionsAD.weakdeps]
+    ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+    LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
+    ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+    Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -1237,6 +1267,11 @@ deps = ["Artifacts", "JLLWrappers", "Libdl"]
 git-tree-sha1 = "0936ba688c6d201805a83da835b55c61a180db52"
 uuid = "905a6f67-0a94-5f89-b386-d35d92009cd1"
 version = "3.1.11+0"
+
+[[deps.Indexing]]
+git-tree-sha1 = "ce1566720fd6b19ff3411404d4b977acd4814f9f"
+uuid = "313cdc1a-70c2-5d6a-ae34-0150d3930a38"
+version = "1.1.1"
 
 [[deps.IndirectArrays]]
 git-tree-sha1 = "012e604e1c7458645cb8b436f8fba789a51b257f"
@@ -2943,6 +2978,12 @@ weakdeps = ["ChainRulesCore", "InverseFunctions"]
     [deps.StatsFuns.extensions]
     StatsFunsChainRulesCoreExt = "ChainRulesCore"
     StatsFunsInverseFunctionsExt = "InverseFunctions"
+
+[[deps.StochasticAD]]
+deps = ["ChainRulesCore", "ChainRulesOverloadGeneration", "Dictionaries", "Distributions", "DistributionsAD", "ExprTools", "ForwardDiff", "Functors", "Random"]
+git-tree-sha1 = "4803f0df235d6f33b233820d7f6ae9134a160e10"
+uuid = "e4facb34-4f7e-4bec-b153-e122c37934ac"
+version = "0.1.25"
 
 [[deps.StrideArraysCore]]
 deps = ["ArrayInterface", "CloseOpenIntervals", "IfElse", "LayoutPointers", "ManualMemory", "SIMDTypes", "Static", "StaticArrayInterface", "ThreadingUtilities"]

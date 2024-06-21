@@ -7,6 +7,7 @@ function Q(V::T, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Floa
         α, β, γ = rates[e]
 
         rate::Float64 = min(abs(γ), (max(0, α + β*V)))
+        # rate::Float64 = max(0, γ*tanh(α+β*V))
 
         return rate
     end
@@ -25,41 +26,50 @@ end
 """
 *An efficient way to simulate a step for a particular voltage*
 """
-function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64,Float64}}, Q::Function, V::S, dur::T, initial::Vector{Float64}; peak=false::Bool, halfpeak=false::Bool, time=true::Bool) where {S, T <: Number}
+function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64,Float64}}, Q::Function, V::S, dur::T, initial::Vector{Float64}; peak=false::Bool, halfpeak=false::Bool, time=true::Bool, debug = false::Bool) where {S, T <: Number}
     
     qv = Q(V,rates)
+    (sum(isnan.(qv) + isinf.(qv)) > 0) ? (return initial) : nothing
 
-    if (!isValid(qv::Matrix{Float64}, dt::Float64)::Bool || !isValid(qv::Matrix{Float64}, dur::Float64)::Bool || !isValid(qv::Matrix{Float64}, 1)::Bool)
-        if !halfpeak
-            if !peak
-                return initial
-            else
-                if time
-                    return dur
-                else
-                    return 1e10
-                end
-            end
-        else
-            return 0
-        end
+    if debug
+        return expv_timestep(collect(range(start=0, stop=dur, step=1e-2)), qv, initial)
     end
+
+    # if (!isValid(qv::Matrix{Float64}, dt::Float64)::Bool || !isValid(qv::Matrix{Float64}, dur::Float64)::Bool || !isValid(qv::Matrix{Float64}, 1)::Bool)
+    #     if !halfpeak
+    #         if !peak
+    #             return initial
+    #         else
+    #             if time
+    #                 return dur
+    #             else
+    #                 return 1e10
+    #             end
+    #         end
+    #     else
+    #         return 0
+    #     end
+    # end
 
 
     if !halfpeak
         if !peak
-            return padexp(qv::Matrix{Float64}*dur::Float64)::Matrix{Float64}*initial
+            return expv_timestep(dur, qv, initial)
+            # return padexp(qv::Matrix{Float64}*dur::Float64)::Matrix{Float64}*initial
         else
             newDt= 1e-2
             
-            expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
-            s=[initial]
+            states = expv_timestep(collect(range(start=0, stop=25, step=newDt)), qv, initial)
+            gatherOpens = states[n̅, :]
+            
+            # expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
+            # s=[initial]
 
-            for (i, _) ∈ enumerate(1:newDt:5)
-                push!(s, expQ*s[i])
-            end
+            # for (i, _) ∈ enumerate(1:newDt:5)
+            #     push!(s, expQ*s[i])
+            # end
 
-            gatherOpens = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
+            # gatherOpens = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
 
             inde::Int = argmax(gatherOpens)
 
@@ -75,14 +85,17 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
     else
         #step 1: find time to peak
         newDt::Float64 = 1e-2
-        expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
-        s =[initial]
 
-        for (i, _) ∈ enumerate(1:newDt:5)
-            push!(s, expQ*s[i])
-        end
+        states = expv_timestep(collect(range(start=0, stop=25, step=newDt)), qv, initial)
+        gatherOpens = states[n̅, :]
+        # expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
+        # s =[initial]
 
-        gatherOpens::Vector{Float64} = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
+        # for (i, _) ∈ enumerate(1:newDt:5)
+        #     push!(s, expQ*s[i])
+        # end
+
+        # gatherOpens::Vector{Float64} = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
         
         peakIndex = argmax(gatherOpens)
         peakVal = gatherOpens[peakIndex]
@@ -106,20 +119,22 @@ end
 
 Returns a row vector for the probabilities in each state at steady state
 """
-function simulateSS(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64,Float64}}, Q::Function, V::T) where T <: Number
+function simulateSS(rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Float64,Float64}}, Q::Function, V::T) where T <: Number
     q::Matrix{Float64} = Q(V, rates)::Matrix{Float64}
 
-    #here we choose 1 as our dummy state to fill, but can be any of the states
-    q[1,:] = ones(length(q[1,:]))::Vector{Float64}
-    openstate::Vector{Float64} = zeros(length(q[1,:]))::Vector{Float64}
-    openstate[1]::Float64 = 1
+    expv_timestep(500, q, [i == n̅ ? 1.0 : 0.0 for i in 1:size(q,1)])
 
-    try
-        return (inv(q::Matrix{Float64})::Matrix{Float64}* openstate)
-    catch
+    # #here we choose 1 as our dummy state to fill, but can be any of the states
+    # q[1,:] = ones(length(q[1,:]))::Vector{Float64}
+    # openstate::Vector{Float64} = zeros(length(q[1,:]))::Vector{Float64}
+    # openstate[1]::Float64 = 1
+
+    # try
+    #     return (inv(q::Matrix{Float64})::Matrix{Float64}* openstate)
+    # catch
         
-        return zeros(length(q[1,:]::Vector{Float64})::Int)::Vector{Float64}
-    end
+    #     return zeros(length(q[1,:]::Vector{Float64})::Int)::Vector{Float64}
+    # end
 end
 
 """
@@ -127,11 +142,11 @@ isValid will check to see if the Q and V pair is valid for computing inverse and
 """
 function isValid(q, dur)
 
-    try
-        padexp(q*dur)
-    catch e
-        return false
-    end
+    # try
+    #     padexp(q*dur)
+    # catch e
+    #     return false
+    # end
 
     return true
 end
@@ -139,9 +154,11 @@ end
 #CHANGE BACK TO SVECTOR AFTER, SVector{86,Float64} and SVector{2,Int}
 # function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int})::Float64
 function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; returnforPlotting::Bool=false)::Any
-    n̅ = additionals[1]
+    # params= StochasticAD.value.(p)
+    
+    global n = additionals[1]
     # n=7
-    n̅ = additionals[2]
+    global n̅ = additionals[2]
     dt = 1e-4
     dataPath = "res/INaHEK/"
     
@@ -152,6 +169,13 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         rates[e] = (params[idx], params[idx + 1], params[idx + 2])::Tuple{Float64,Float64,Float64}
         idx += 3
     end
+
+    """
+    GLOBAL INITIAL STATE
+    """
+
+    initial = simulateSS(rates, Q, -100.0)
+
 
     """
     ACTIVATION PROTOCOL
@@ -177,18 +201,17 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
       5.74  0.94  0.01
      16.25  0.97  0.01
      20.76  0.99  0.01]
-    initial = simulateSS(dt, rates, Q, -100.0)
 
-    steps::Vector{Vector{Float64}} = []
+    steps = []
     for V::Float64 ∈ data[:,1]
         
-        step::Vector{Float64} = simulateStep(dt, rates, Q, V, 25.0, initial)::Vector{Float64}
-        push!(steps, step)
+        s4 = simulateStep(dt, rates, Q, V, 25.0, initial, peak=true, time=false)
+        push!(steps, s4)
     end
 
-    oNormalized = []
-    o::Vector{Float64} = [steps[i][n̅] for i in 1:size(steps)[1]]
-    oNormalized::Vector{Float64} = o ./ findmax(o)[1]
+    # oNormalized = []
+    # o::Vector{Float64} = [steps[i][n̅] for i in 1:size(steps)[1]]
+    oNormalized = steps ./ findmax(steps)[1]
 
     ŷ::Vector{Float64} = oNormalized
 
@@ -219,18 +242,18 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
      -70.0  0.75  0.02
      -60.0  0.39  0.03
      -40.0  0.01  0.01]
-    initial = simulateSS(dt, rates, Q, -100.0)
+    # initial = simulateSS(rates, Q, -100.0)
 
     steps = []
     for V ∈ data[:,1]
         step::Vector{Float64} = simulateStep(dt, rates, Q, V, 500.0, initial)
-        test::Vector{Float64} = simulateStep(dt, rates, Q, -10, 25.0, step)
-        push!(steps, test)
+        s4 = simulateStep(dt, rates, Q, -10, 25.0, step, peak=true,time=false)
+        push!(steps, s4)
     end
 
-    oNormalized = []
-    o = [steps[i][n̅] for i in 1:size(steps)[1]]
-    oNormalized = o ./ findmax(o)[1]
+    # oNormalized = []
+    # o = [steps[i][n̅] for i in 1:size(steps)[1]]
+    oNormalized = steps ./ findmax(steps)[1]
 
     ŷ = oNormalized
 
@@ -265,7 +288,7 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
    87.7  0.99  0.01
   120.6  0.99  0.01
   208.2  0.99  0.01]
-    initial = simulateSS(dt, rates, Q, -100.0)
+    # initial = simulateSS(rates, Q, -100.0)
 
     #first pulse (depolarizing)
     step1::Vector{Float64} = simulateStep(dt, rates, Q, -10, 500.0, initial)
@@ -275,15 +298,15 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         #second pulses (hyperpolarizing)
         step2::Vector{Float64} = simulateStep(dt, rates, Q, -100, tDur, step1::Vector{Float64})
         #test pulse
-        step3::Vector{Float64} = simulateStep(dt, rates, Q, -10.0, 25.0, step2::Vector{Float64})
+        s4 = simulateStep(dt, rates, Q, -10.0, 25.0, step2::Vector{Float64}, peak=true, time=false)
 
         #save
-        push!(steps, step3)
+        push!(steps, s4)
     end
 
-    oNormalized = []
-    o = [steps[i][n̅] for i in 1:size(steps)[1]::Int]
-    oNormalized = o ./ findmax(o)[1]
+    # oNormalized = []
+    # o = [steps[i][n̅] for i in 1:size(steps)[1]::Int]
+    oNormalized = steps ./ findmax(steps)[1]
 
     ŷ = oNormalized
     recoveryErr = mean((ŷ .- y) .^ 2)
@@ -314,8 +337,9 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
   904.0   0.96  0.02
  2980.0   0.99  0.01
  8890.0   1.0   0.01]
-    initial = simulateSS(dt, rates, Q, -100.0)
+    # initial = simulateSS(rates, Q, -100.0)
 
+    step1 = initial
     step2 = initial
     #depolarizing pulse train
     for i ∈ 1:100
@@ -329,15 +353,15 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         #hyperpolarizing pulse
         step3::Vector{Float64} = simulateStep(dt, rates, Q, -100, tDur, step2::Vector{Float64})
         #test pulse
-        step4::Vector{Float64} = simulateStep(dt, rates, Q, -10, 25.0, step3::Vector{Float64})
+        s4= simulateStep(dt, rates, Q, -10, 25.0, step3::Vector{Float64}, peak=true, time=false)
 
         #save
-        push!(steps, step4)
+        push!(steps, s4)
     end
 
-    oNormalized = []
-    o = [steps[i][n̅] for i in 1:size(steps)[1]::Int]
-    oNormalized = o ./ findmax(o)[1]
+    # oNormalized = []
+    # o = [steps[i][n̅] for i in 1:size(steps)[1]::Int]
+    oNormalized = steps ./ findmax(steps)[1]
 
     ŷ = oNormalized
     recoveryUDBErr = mean((ŷ .- y) .^ 2)
@@ -359,28 +383,47 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     y_MAXPO = y
     ŷ_MAXPO = ŷ
     #simulate maxPO
-    try
-        # @show params
-        # data = readdlm(dataPath*maxPOProtocol["source"])
-        data = [ -20.0  0.31  0.05
-        -10.0  0.31  0.05
-          0.0  0.31  0.05]
-        initial = simulateSS(dt, rates, Q, -100.0)
-        peaks = []
-        for V ∈ data[:,1]
-            peak::Float64 = simulateStep(dt, rates, Q, V, 100.0, initial, peak=true, time=false)::Float64
 
-            push!(peaks, peak::Float64)
-        end
-        
-        y_MAXPO = vec([0.31 0.31 0.31])
-        ŷ_MAXPO = convert(Vector{Float64}, peaks)
+    # data = [ -20.0  0.31  0.05
+        # -10.0  0.31  0.05
+            # 0.0  0.31  0.05]
+    data = [-10.0  0.31  0.05]
+    # initial = simulateSS(rates, Q, -100.0)
+    peaks = []
+    for V ∈ data[:,1]
+        peak::Float64 = simulateStep(dt, rates, Q, V, 100.0, initial, peak=true, time=false)::Float64
 
-        maxPOErr = mean((convert(Vector{Float64}, peaks) .- vec([0.31 0.31 0.31])) .^ 2)
-        (isnan(maxPOErr) | isinf(maxPOErr)) ? maxPOErr = 1e3 : nothing
-    catch
-        maxPOErr = 1e3
+        push!(peaks, peak::Float64)
     end
+
+    # y_MAXPO = vec([0.31 0.31 0.31])
+    y_MAXPO = vec([0.31])
+    ŷ_MAXPO = convert(Vector{Float64}, peaks)
+
+    maxPOErr = mean((convert(Vector{Float64}, peaks) .- vec([0.31])) .^ 2)
+    (isnan(maxPOErr) | isinf(maxPOErr)) ? maxPOErr = 1e3 : nothing
+    # try
+    #     # @show params
+    #     # data = readdlm(dataPath*maxPOProtocol["source"])
+    #     data = [ -20.0  0.31  0.05
+    #     -10.0  0.31  0.05
+    #         0.0  0.31  0.05]
+    #     initial = simulateSS(rates, Q, -100.0)
+    #     peaks = []
+    #     for V ∈ data[:,1]
+    #         peak::Float64 = simulateStep(dt, rates, Q, V, 100.0, initial, peak=true, time=false)::Float64
+
+    #         push!(peaks, peak::Float64)
+    #     end
+
+    #     y_MAXPO = vec([0.31 0.31 0.31])
+    #     ŷ_MAXPO = convert(Vector{Float64}, peaks)
+
+    #     maxPOErr = mean((convert(Vector{Float64}, peaks) .- vec([0.31 0.31 0.31])) .^ 2)
+    #     (isnan(maxPOErr) | isinf(maxPOErr)) ? maxPOErr = 1e3 : nothing
+    # catch
+    #     maxPOErr = 1e3
+    # end
     # @show maxPOErr
 
     
@@ -397,16 +440,14 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     y_FALL = y
     ŷ_FALL = ŷ
     #simulate fall
-    try
-        # data = readdlm(dataPath*fallProtocol["source"])
-        data =[20.0  0.48  0.01
+    data =[20.0  0.48  0.01
         15.0  0.5   0.01
         10.0  0.52  0.02
          5.0  0.55  0.02
         -5.0  0.65  0.03
        -10.0  0.73  0.03
        -15.0  0.84  0.03]
-        initial = simulateSS(dt, rates, Q, -100.0)
+        # initial = simulateSS(rates, Q, -100.0)
 
         durations = []
         for V ∈ data[:,1]
@@ -422,24 +463,54 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
 
         fallErr = mean((convert(Vector{Float64} ,durations) .- vec([0.48  0.5  0.52  0.55  0.65  0.73  0.84])) .^ 2)
         (isnan(fallErr) | isinf(fallErr)) ? fallErr = 1e3 : nothing
-    catch
-        fallErr = 1e3
-    end
+    # try
+    #     # data = readdlm(dataPath*fallProtocol["source"])
+    #     data =[20.0  0.48  0.01
+    #     15.0  0.5   0.01
+    #     10.0  0.52  0.02
+    #      5.0  0.55  0.02
+    #     -5.0  0.65  0.03
+    #    -10.0  0.73  0.03
+    #    -15.0  0.84  0.03]
+    #     initial = simulateSS(rates, Q, -100.0)
+
+    #     durations = []
+    #     for V ∈ data[:,1]
+    #         #for each voltage, we gather the time distribution of the open state
+    #         #and isolate the peak, 50% of the peak, and determine the time between them
+    #         duration::Float64 = simulateStep(dt, rates, Q, V, 500.0, initial, halfpeak=true)
+            
+    #         push!(durations, duration::Float64)
+    #     end
+
+    #     y_FALL = vec([0.48  0.5  0.52  0.55  0.65  0.73  0.84])
+    #     ŷ_FALL = convert(Vector{Float64} ,durations)
+
+    #     fallErr = mean((convert(Vector{Float64} ,durations) .- vec([0.48  0.5  0.52  0.55  0.65  0.73  0.84])) .^ 2)
+    #     (isnan(fallErr) | isinf(fallErr)) ? fallErr = 1e3 : nothing
+    # catch
+    #     fallErr = 1e3
+    # end
     # @show fallErr
 
 
     # """
     # TIME TO PEAK PROTOCOL
     # """
-    # #initialize
-    # ttpErr = 1e3
+    #initialize
+    ttpErr = 1e3
     
-    # initial = simulateSS(dt, rates, Q, -100)
+    # initial = simulateSS(rates, Q, -100)
 
-    # y_TTP = [1]
-    # ŷ_TTP = [0]
+    y_TTP = [1]
+    ŷ_TTP = [0]
 
-    # ttpS = []
+    ttpS = []
+    timeToPeak::Float64 = simulateStep(dt, rates, Q, 0, 500.0, initial, peak=true,time=true)::Float64
+        
+        ŷ_TTP = [timeToPeak]
+        ttpErr = mean((timeToPeak .- 1) .^ 2)
+        (isnan(ttpErr) | isinf(ttpErr)) ? ttpErr = 1e3 : nothing
     # try
     #     timeToPeak::Float64 = simulateStep(dt, rates, Q, -10, 500.0, initial, peak=true,time=true)::Float64
         
@@ -449,12 +520,25 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     # catch
     #     ttpErr = 100
     # end
-    # # @show ttpErr
+    # @show ttpErr
 
-    closed = simulateSS(dt, rates, Q, -100.0)
-    activationErr += mean((closed[n̅] .- 0) .^ 2)
+    # closed = simulateSS(dt, rates, Q, -100.0)
+    # activationErr += mean((closed[n̅] .- 0) .^ 2)
 
-    
+
+    """
+    edges
+    """
+    # initial = simulateSS(rates, Q, -100)
+    edgeChecks = [-65, -25, -10, 0, 10, 25, 30, 45]
+    edges = []
+    for V ∈ edgeChecks
+        e = simulateStep(dt, rates, Q, V, 500., initial)[n̅,:]
+
+        push!(edges, e)
+    end
+
+    edgeError = sum( vcat(edges...))
     
     errors::Vector{Float64} = [
         (4 * activationErr),
@@ -463,7 +547,8 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         (2 * recoveryUDBErr),
         (1* maxPOErr),
         (4 * fallErr),
-        # (1 * ttpErr)
+        (0.5 * ttpErr),
+        (1*edgeError)
     ]
     weights::Vector{Float64} = [
         4,
@@ -472,7 +557,8 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         2,
         1,
         4,
-        # 1
+        0.5,
+        1
     ]
     weightedAvg::Float64 = sum(errors::Vector{Float64})::Float64 / sum(weights::Vector{Float64})::Float64
 

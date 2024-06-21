@@ -3,17 +3,17 @@ Pkg.activate(".")
 
 @everywhere using Graphs
 @everywhere using Karnak, Colors, UnPack
-@everywhere using Optim, Distributed, Dagger, LinearAlgebra
+@everywhere using Optimisers, Distributed, Dagger, LinearAlgebra
 @everywhere using YAML, DelimitedFiles, Statistics
 @everywhere using ExponentialUtilities
-@everywhere using Logging, Printf, Dates, LoggingExtras
-@everywhere include("traintils/cascade.jl")
-# @everywhere include("traintils/pade.jl")
-@everywhere include("traintils/loss.jl")
+@everywhere using Logging, Printf, Dates, LoggingExtras, StochasticAD
+@everywhere include("src/traintils/cascade.jl")
+@everywhere include("src/traintils/loss.jl")
+
 
 idd = Dates.format(now(), "mmddss")
 @everywhere modelID = $idd
-p = joinpath("logs-3/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
+p = joinpath("logs-2/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
 formatlogger = FormatLogger(p, append=true) do io, args
     println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
 end
@@ -47,7 +47,7 @@ with_logger(logg) do
 end
 @everywhere n̅ = 1
 @everywhere global additionals = [n, n̅]
-@everywhere out = "models/Jun18/$(modelID)_n=$n.model"
+@everywhere out = "models/Jun4/$(modelID)_n=$n.model"
 global ct
 
 # #GRAPH
@@ -68,6 +68,23 @@ with_logger(logg) do
 end
 
 global ct = 0
+
+# csl(p) = consolidatedLoss(p, additionals)
+include("src/traintils/loss.jl")
+m = StochasticModel(x -> consolidatedLoss(StochasticAD.value.(x), additionals), pd)
+iterations = 5
+trace = []
+
+s = Optimisers.setup(Optimisers.Adam(eta=0.1), m)
+for i in 1:iterations
+    j = Optim.optimize(x -> consolidatedLoss(x, additionals), m.p, ParticleSwarm(n_particles=11), Optim.Options(iterations=10))
+    m = StochasticModel(x -> consolidatedLoss(x, additionals), j.minimizer)
+    Optimisers.update!(s, m, stochastic_gradient(m))
+    println("[$i] $(consolidatedLoss(m.p, additionals))")
+end
+p_opt = m.p # Our optimized value of p
+
+
 while true
     local pd = vec(readdlm(out))
     local curloss = consolidatedLoss(pd, additionals)

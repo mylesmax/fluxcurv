@@ -339,12 +339,13 @@ function consolidatedLossES(params::Vector{Float64}, additionals::Vector{Int64};
         return [weightedAvg, y_activation, y_inactivation, y_recovery, y_recoveryUDB, y_MAXPO, y_TTP, y_FALL, ŷ_activation, ŷ_inactivation, ŷ_recovery, ŷ_recoveryUDB, ŷ_MAXPO, ŷ_TTP, ŷ_FALL]
     end
     
-    return [activationErr, inactivationErr, recoveryErr, recoveryUDBErr, maxPOErr,fallErr,ttpErr], [0.0], [0.0] #g and h no constraints
+    # return [activationErr, inactivationErr, recoveryErr, recoveryUDBErr, maxPOErr,fallErr,ttpErr], [0.0], [0.0] #g and h no constraints
+    return [fallErr], [0.0], [0.0] #g and h no constraints
 end
 
 function objec_parallel(X,n; extra::Bool=false)
     N = size(X,1)
-    nobjectives = 7
+    nobjectives = 1
     fx, gx, hx = zeros(N,nobjectives), zeros(N,1), zeros(N,1)
     Threads.@threads for i in 1:N
         fx[i,:], gx[i,:], hx[i,:] = consolidatedLossES(X[i,:],n)
