@@ -5,6 +5,8 @@ using CairoMakie
 """
 PLOTTING
 """
+f =  Figure(size=(1200,800))
+paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
 
 function plotall(f, params, n_var, n̅_var)
     a = consolidatedLoss(params, [n_var, n̅_var], returnforPlotting=true)
@@ -150,6 +152,9 @@ function plotall(f, params, n_var, n̅_var)
 end
 
 f =  Figure(size=(1200,800))
+paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
+
+
 plotall(f, vec(readdlm("out8.txt")), 8 , 1)
 
 plotall(f, vec(readdlm("models/good7State.txt")), 7 , 1)
@@ -167,9 +172,45 @@ plotall(f, vec(readdlm(paff*"models/Jun18/0618939_n=9.model")), 9, 1)
 plotall(f, vec(readdlm(paff*"models/Jun18/061834_n=4.model")), 4, 1)
 plotall(f, vec(readdlm(paff*"models/Jun18/0619484_n=17.model")), 17, 1)
 
+plotall(f, vec(readdlm(paff*"models/Jun18/0620128_n=4.model")), 4, 1)
+plotall(f, vec(readdlm(paff*"models/Jun18/0620162_n=3.model")), 3, 1)
+plotall(f, vec(readdlm(paff* "models/Jun18/062024_n=11.model")), 11, 1)
+
+#ν
+#4
+plotall(f, vec(readdlm(paff* "models/Jun22/0622461_n=4.model")), 4, 1)
+#3
+plotall(f, vec(readdlm(paff* "models/Jun22/0622633_n=3.model")), 3, 1)
+#5
+plotall(f, vec(readdlm(paff*"models/Jun22/0622471_n=5.model")), 5,1)
+#9
+plotall(f, vec(readdlm(paff*"models/Jun22/0701589_n=9.model")), 9, 1)
 
 
-plotall(f, pd, 7, 1)
+#11
+plotall(f,vec(readdlm(paff*"models/Jun22/0622539_n=11.model")), 11, 1)
+#7
+plotall(f, vec(readdlm(paff*"models/Jun22/0622097_n=7.model")), 7, 1)
+#17
+plotall(f, vec(readdlm(paff*"models/Jun22/062290_n=17.model")), 17, 1)
+
+plotall(f,vec(readdlm(paff*"models/Jun22/0622156_n=9.model")),9,1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+plotall(f, pd, 3, 1)
 
 for i ∈ 1:200
     opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))

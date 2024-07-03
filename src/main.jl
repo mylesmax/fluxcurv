@@ -47,7 +47,7 @@ with_logger(logg) do
 end
 @everywhere n̅ = 1
 @everywhere global additionals = [n, n̅]
-@everywhere out = "models/Jun18/$(modelID)_n=$n.model"
+@everywhere out = "models/Jun22/$(modelID)_n=$n.model"
 global ct
 
 # #GRAPH
