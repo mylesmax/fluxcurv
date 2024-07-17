@@ -6,7 +6,14 @@ function Q(V::T, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Floa
         e = Edge(x,y)
         α, β, γ = rates[e]
 
-        rate::Float64 = min(abs(20*γ), (max(0, 10*α + β*(V+50))))
+        # rate::Float64 = min(abs(200*γ), (max(0, 10*α + β*(V+75))))
+        # rate::Float64 = max(-200*γ, (min(200*γ, (50*α+0.5*β*(V-150)))))
+        m = 45 #maximum speed of state velocity
+        n = 120 #limit for opening state (hyperpolarized)
+        h = 30 #limit for opening state (depolarized)
+        
+        rate::Float64 = (min(m*γ, max(0, β*(V-((h+n)*α-n)))))^2
+
         # rate::Float64 = max(0, γ*tanh(α+β*V))
 
         return rate
@@ -61,7 +68,7 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
             try
                 return expv_timestep(dur, qv, initial)
             catch
-                println("error in simulatestep, line 62")
+                # println("error in simulatestep, line 62")
                 return initial
             end
             # return padexp(qv::Matrix{Float64}*dur::Float64)::Matrix{Float64}*initial
@@ -93,7 +100,7 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
                     return peakVal
                 end
             catch
-                println("error in simulatestep, line 73")
+                # println("error in simulatestep, line 73")
                 if time
                     return 99.0
                 else
@@ -549,19 +556,19 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     # activationErr += mean((closed[n̅] .- 0) .^ 2)
 
 
-    """
-    edges
-    """
-    # initial = simulateSS(rates, Q, -100)
-    edgeChecks = [-65, -25, -10, 0, 10, 25, 30, 45]
-    edges = []
-    for V ∈ edgeChecks
-        e = simulateStep(dt, rates, Q, V, 500., initial)[n̅,:]
+    # """
+    # edges
+    # """
+    # # initial = simulateSS(rates, Q, -100)
+    # edgeChecks = [-65, -25, -10, 0, 10, 25, 30, 45]
+    # edges = []
+    # for V ∈ edgeChecks
+    #     e = simulateStep(dt, rates, Q, V, 5000., initial)[n̅,:]
 
-        push!(edges, e)
-    end
+    #     push!(edges, e)
+    # end
 
-    edgeError = 10 * sum( vcat(edges...))
+    # edgeError = 10 * sum( vcat(edges...))
     
     errors::Vector{Float64} = [
         (4 * activationErr),
@@ -570,8 +577,8 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         (2 * recoveryUDBErr),
         (3* maxPOErr),
         (4 * fallErr),
-        (1 * ttpErr),
-        (4*edgeError)
+        (1 * ttpErr)
+        # (4*edgeError)
     ]
     weights::Vector{Float64} = [
         4,
@@ -580,8 +587,8 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         2,
         3,
         4,
-        1,
-        4
+        1
+        # 4
     ]
     weightedAvg::Float64 = sum(errors::Vector{Float64})::Float64 / sum(weights::Vector{Float64})::Float64
 

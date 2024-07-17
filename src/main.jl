@@ -13,7 +13,7 @@ Pkg.activate(".")
 
 idd = Dates.format(now(), "mmddss")
 @everywhere modelID = $idd
-p = joinpath("logs-3/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
+p = joinpath("logs-4/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
 formatlogger = FormatLogger(p, append=true) do io, args
     println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
 end
@@ -47,7 +47,7 @@ with_logger(logg) do
 end
 @everywhere n̅ = 1
 @everywhere global additionals = [n, n̅]
-@everywhere out = "models/Jun22/$(modelID)_n=$n.model"
+@everywhere out = "models/Jul17/$(modelID)_n=$n.model"
 global ct
 
 # #GRAPH

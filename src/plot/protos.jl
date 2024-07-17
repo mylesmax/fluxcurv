@@ -184,13 +184,16 @@ plotall(f, vec(readdlm(paff* "models/Jun22/0622633_n=3.model")), 3, 1)
 #5
 plotall(f, vec(readdlm(paff*"models/Jun22/0622471_n=5.model")), 5,1)
 #9
-plotall(f, vec(readdlm(paff*"models/Jun22/0701589_n=9.model")), 9, 1)
+plotall(f, vec(readdlm(paff*"models/Jun22/0708585_n=10.model")), 10, 1)
 
 
 #11
 plotall(f,vec(readdlm(paff*"models/Jun22/0622539_n=11.model")), 11, 1)
 #7
-plotall(f, vec(readdlm(paff*"models/Jun22/0622097_n=7.model")), 7, 1)
+plotall(f, vec(readdlm(paff*"models/Jun22/0715503_n=7.model")), 7, 1)
+
+
+
 #17
 plotall(f, vec(readdlm(paff*"models/Jun22/062290_n=17.model")), 17, 1)
 
