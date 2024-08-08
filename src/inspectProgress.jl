@@ -1,0 +1,43 @@
+include("init.jl")
+f =  Figure(size=(1200,800))
+
+# wrapPlot("logs-6/bsub/output_871957.log")
+# wrapPlot("logs-6/bsub/output_871958.log")
+# wrapPlot("logs-6/bsub/output_871961.log")
+
+# wrapPlot("logs-6/bsub/output_871962.log")
+# wrapPlot("logs-6/bsub/output_871967.log")
+# wrapPlot("logs-6/bsub/output_871980.log")
+# wrapPlot("logs-6/bsub/output_871981.log")
+# # wrapPlot("logs-6/bsub/output_871982.log")
+# wrapPlot("logs-6/bsub/output_871983.log")
+
+# #70 state!
+# wrapPlot("logs-6/bsub/output_873392.log")
+
+#######
+# wrapPlot("logs-6/bsub/output_873755.log")
+# wrapPlot("logs-6/bsub/output_873756.log")
+# wrapPlot("logs-6/bsub/output_873759.log")
+# wrapPlot("logs-6/bsub/output_873762.log")
+# wrapPlot("logs-6/bsub/output_873763.log")
+# wrapPlot("logs-6/bsub/output_873764.log")
+# wrapPlot("logs-6/bsub/output_873765.log")
+# wrapPlot("logs-6/bsub/output_873767.log")
+# wrapPlot("logs-6/bsub/output_873768.log")
+# wrapPlot("logs-6/bsub/output_873769.log")
+# wrapPlot("logs-6/bsub/output_873771.log")
+# wrapPlot("logs-6/bsub/output_873773.log")
+
+wrapPlot("logs-6/bsub/output_875438.log")
+wrapPlot("logs-6/bsub/output_875439.log")
+wrapPlot("logs-6/bsub/output_875436.log")
+wrapPlot("logs-6/bsub/output_875437.log")
+wrapPlot("logs-6/bsub/output_875444.log")
+wrapPlot("logs-6/bsub/output_875445.log")
+wrapPlot("logs-6/bsub/output_875446.log")
+wrapPlot("logs-6/bsub/output_875447.log")
+wrapPlot("logs-6/bsub/output_875448.log")
+wrapPlot("logs-6/bsub/output_875451.log")
+wrapPlot("logs-6/bsub/output_875453.log")
+wrapPlot("logs-6/bsub/output_875454.log")

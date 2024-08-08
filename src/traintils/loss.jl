@@ -6,11 +6,15 @@ function Q(V::T, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, Floa
         e = Edge(x,y)
         α, β, γ = rates[e]
 
+        m, n, h = rates[Edge(999, 999)]
+
         # rate::Float64 = min(abs(200*γ), (max(0, 10*α + β*(V+75))))
         # rate::Float64 = max(-200*γ, (min(200*γ, (50*α+0.5*β*(V-150)))))
-        m = 45 #maximum speed of state velocity
-        n = 120 #limit for opening state (hyperpolarized)
-        h = 30 #limit for opening state (depolarized)
+        
+        
+        # m = 3 #maximum speed of state velocity. 45 is too fast (RUDB not training well because recovery is too fast)
+        # n = 120 #limit for opening state (hyperpolarized)
+        # h = 30 #limit for opening state (depolarized)
         
         rate::Float64 = (min(m*γ, max(0, β*(V-((h+n)*α-n)))))^2
 
@@ -46,32 +50,14 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
         end
     end
 
-    # if (!isValid(qv::Matrix{Float64}, dt::Float64)::Bool || !isValid(qv::Matrix{Float64}, dur::Float64)::Bool || !isValid(qv::Matrix{Float64}, 1)::Bool)
-    #     if !halfpeak
-    #         if !peak
-    #             return initial
-    #         else
-    #             if time
-    #                 return dur
-    #             else
-    #                 return 1e10
-    #             end
-    #         end
-    #     else
-    #         return 0
-    #     end
-    # end
-
 
     if !halfpeak
         if !peak
             try
                 return expv_timestep(dur, qv, initial)
             catch
-                # println("error in simulatestep, line 62")
                 return initial
             end
-            # return padexp(qv::Matrix{Float64}*dur::Float64)::Matrix{Float64}*initial
         else
             
             try
@@ -79,15 +65,6 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
 
                 states = expv_timestep(collect(range(start=0, stop=25, step=newDt)), qv, initial)
                 gatherOpens = states[n̅, :]
-            
-                # expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
-                # s=[initial]
-
-                # for (i, _) ∈ enumerate(1:newDt:5)
-                #     push!(s, expQ*s[i])
-                # end
-
-                # gatherOpens = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
 
                 inde::Int = argmax(gatherOpens)
 
@@ -100,7 +77,6 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
                     return peakVal
                 end
             catch
-                # println("error in simulatestep, line 73")
                 if time
                     return 99.0
                 else
@@ -115,15 +91,7 @@ function simulateStep(dt::Float64, rates::Dict{Graphs.SimpleGraphs.SimpleEdge, T
             newDt::Float64 = 1e-2
             states = expv_timestep(collect(range(start=0, stop=25, step=newDt)), qv, initial)
             gatherOpens = states[n̅, :]
-            # expQ = padexp(qv::Matrix{Float64}*newDt::Float64)::Matrix{Float64}
-            # s =[initial]
 
-            # for (i, _) ∈ enumerate(1:newDt:5)
-            #     push!(s, expQ*s[i])
-            # end
-
-            # gatherOpens::Vector{Float64} = [s[i][n̅] for i in (1:(size(s::Vector{Vector{Float64}})::Tuple{Int64})[1]::Int)]
-            
             peakIndex = argmax(gatherOpens)
             peakVal = gatherOpens[peakIndex]
 
@@ -153,32 +121,22 @@ function simulateSS(rates::Dict{Graphs.SimpleGraphs.SimpleEdge, Tuple{Float64, F
     q::Matrix{Float64} = Q(V, rates)::Matrix{Float64}
 
     expv_timestep(500, q, [i == n̅ ? 1.0 : 0.0 for i in 1:size(q,1)])
-
-    # #here we choose 1 as our dummy state to fill, but can be any of the states
-    # q[1,:] = ones(length(q[1,:]))::Vector{Float64}
-    # openstate::Vector{Float64} = zeros(length(q[1,:]))::Vector{Float64}
-    # openstate[1]::Float64 = 1
-
-    # try
-    #     return (inv(q::Matrix{Float64})::Matrix{Float64}* openstate)
-    # catch
-        
-    #     return zeros(length(q[1,:]::Vector{Float64})::Int)::Vector{Float64}
-    # end
 end
 
 """
 isValid will check to see if the Q and V pair is valid for computing inverse and matrix exponential
 """
 function isValid(q, dur)
-
-    # try
-    #     padexp(q*dur)
-    # catch e
-    #     return false
-    # end
-
+    #i guess i dont need this anymore
     return true
+end
+
+function getMNH(mNorm,nNorm,hNorm)
+    maxVelo = 4.5 + (5.5 - 4.5) * mNorm
+    nStart = 120 + (130 - 120) * nNorm
+    hEnd = 20 + (30 - 20) * hNorm
+
+    maxVelo, nStart, hEnd
 end
 
 #CHANGE BACK TO SVECTOR AFTER, SVector{86,Float64} and SVector{2,Int}
@@ -199,6 +157,9 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
         rates[e] = (params[idx], params[idx + 1], params[idx + 2])::Tuple{Float64,Float64,Float64}
         idx += 3
     end
+
+    #store m,n,h
+    rates[Edge(999,999)] = getMNH(params[end-2],params[end-1],params[end])
 
     """
     GLOBAL INITIAL STATE
@@ -573,9 +534,9 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     errors::Vector{Float64} = [
         (4 * activationErr),
         (2 * inactivationErr),
-        (3 * recoveryErr),
-        (2 * recoveryUDBErr),
-        (3* maxPOErr),
+        (2 * recoveryErr),
+        (4 * recoveryUDBErr),
+        (2* maxPOErr),
         (4 * fallErr),
         (1 * ttpErr)
         # (4*edgeError)
@@ -583,9 +544,9 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
     weights::Vector{Float64} = [
         4,
         2,
-        3,
         2,
-        3,
+        4,
+        2,
         4,
         1
         # 4

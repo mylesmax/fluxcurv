@@ -5,15 +5,13 @@ using CairoMakie
 """
 PLOTTING
 """
-f =  Figure(size=(1200,800))
-paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
 
-function plotall(f, params, n_var, n̅_var)
-    a = consolidatedLoss(params, [n_var, n̅_var], returnforPlotting=true)
+function plotall(f, params, additionals)
+    a = consolidatedLoss(params, additionals, returnforPlotting=true)
     weightedAvg, y_activation, y_inactivation, y_recovery, y_recoveryUDB, y_MAXPO, y_TTP, y_FALL, ŷ_activation, ŷ_inactivation, ŷ_recovery, ŷ_recoveryUDB, ŷ_MAXPO, ŷ_TTP, ŷ_FALL = a
 
     dt = 1e-4
-    title::String = "n=$n_var , n̅=$n̅_var , total model loss = $(weightedAvg)"
+    title::String = "n=$(additionals[1]) , n̅=$(additionals[2]) , total model loss = $(weightedAvg)"
     
     scalingfactor = 1
 
@@ -151,81 +149,38 @@ function plotall(f, params, n_var, n̅_var)
     f
 end
 
-f =  Figure(size=(1200,800))
-paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
+function wrapPlot(fpath)
+    function extract_info(filepath::String)
+        content = read(filepath, String)
+    
+        model_pattern = r"wrote new pd to (models/Jul28/\d+_n=\d+\.model)"
+        
+        n_pattern = r"n set to (\d+)"
+        
+        model_match = match(model_pattern, content)
+        n_match = match(n_pattern, content)
+        
+        model_filename = nothing
+        n_value = nothing
+        
+        if model_match !== nothing
+            model_filename = model_match.captures[1]
+        end
+        
+        if n_match !== nothing
+            n_value = parse(Int, n_match.captures[1])
+        end
+        
+        return model_filename, n_value
+    end
+
+    modelPath, nTemp = extract_info(fpath)
+    # f =  Figure(size=(1200,800))
+    paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
 
 
-plotall(f, vec(readdlm("out8.txt")), 8 , 1)
-
-plotall(f, vec(readdlm("models/good7State.txt")), 7 , 1)
-
-n=17
-plotall(f, vec(readdlm("/storage1/jonsilva/Active/m.max/Projects/fluxcurv/models/Jun4/0609961_n=17.model")),17,1)
-
-paff = "/storage1/jonsilva/Active/m.max/Projects/fluxcurv/"
-plotall(f, vec(readdlm(paff*"models/Jun16/061629_n=7.model")), 7,1)
-
-
-
-plotall(f, vec(readdlm(paff*"models/Jun18/0618872_n=7.model")), 7,1)
-plotall(f, vec(readdlm(paff*"models/Jun18/0618939_n=9.model")), 9, 1)
-plotall(f, vec(readdlm(paff*"models/Jun18/061834_n=4.model")), 4, 1)
-plotall(f, vec(readdlm(paff*"models/Jun18/0619484_n=17.model")), 17, 1)
-
-plotall(f, vec(readdlm(paff*"models/Jun18/0620128_n=4.model")), 4, 1)
-plotall(f, vec(readdlm(paff*"models/Jun18/0620162_n=3.model")), 3, 1)
-plotall(f, vec(readdlm(paff* "models/Jun18/062024_n=11.model")), 11, 1)
-
-#ν
-#4
-plotall(f, vec(readdlm(paff* "models/Jun22/0622461_n=4.model")), 4, 1)
-#3
-plotall(f, vec(readdlm(paff* "models/Jun22/0622633_n=3.model")), 3, 1)
-#5
-plotall(f, vec(readdlm(paff*"models/Jun22/0622471_n=5.model")), 5,1)
-#9
-plotall(f, vec(readdlm(paff*"models/Jun22/0708585_n=10.model")), 10, 1)
-
-
-#11
-plotall(f,vec(readdlm(paff*"models/Jun22/0622539_n=11.model")), 11, 1)
-#7
-plotall(f, vec(readdlm(paff*"models/Jun22/0715503_n=7.model")), 7, 1)
-
-
-
-#17
-plotall(f, vec(readdlm(paff*"models/Jun22/062290_n=17.model")), 17, 1)
-
-plotall(f,vec(readdlm(paff*"models/Jun22/0622156_n=9.model")),9,1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-plotall(f, pd, 3, 1)
-
-for i ∈ 1:200
-    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
-    pd = Optim.minimizer(fetch(opt))
-    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
-    pd = Optim.minimizer(fetch(opt))
-    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
-    pd = Optim.minimizer(fetch(opt))
-    opt = Threads.@spawn optimize(x -> consolidatedLoss(x, additionals), pd, ParticleSwarm(n_particles = 11,lower = 0*ones(length(pd)), upper =5000*ones(length(pd))), Optim.Options(time_limit=7))
-    pd = Optim.minimizer(fetch(opt))
-
-    @show Optim.minimum(fetch(opt))
-    writedlm("yessir.txt", pd)
+    
+    return plotall(f, vec(readdlm(paff*modelPath)), [nTemp, 1])
 end
-plotall(f, pd, 7, 1)
+
+

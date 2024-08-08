@@ -1,5 +1,6 @@
 using Pkg
 Pkg.activate(".")
+using Distributed
 
 @everywhere using Graphs
 @everywhere using Karnak, Colors, UnPack
@@ -8,7 +9,6 @@ Pkg.activate(".")
 @everywhere using ExponentialUtilities
 @everywhere using Logging, Printf, Dates, LoggingExtras
 @everywhere include("traintils/cascade.jl")
-# @everywhere include("traintils/pade.jl")
 @everywhere include("traintils/loss.jl")
 
 idd = Dates.format(now(), "mmddss")
@@ -42,9 +42,7 @@ end
 
 @everywhere n= $n
 
-with_logger(logg) do
-    @info "m,n,h activated. n set to $n"
-end
+
 @everywhere n̅ = 1
 @everywhere global additionals = [n, n̅]
 @everywhere out = "models/Jul28/$(modelID)_n=$n.model"
@@ -62,48 +60,7 @@ global ct
 @everywhere pd = rand(3*(n*(n-1)) + 3) #add the m,n,h
     
 # @everywhere (n == 7) ? (pd = vec(readdlm("models/good7State.txt")); println("pd absorbed from good7state")) : (pd = vec(readdlm("out8.txt")); println("pd absorbed from out8"))
-writedlm(out, pd)
-with_logger(logg) do
-    @info "wrote new pd to $out"
-end
+
 
 global ct = 0
-while true
-    local pd = vec(readdlm(out))
-    local curloss = consolidatedLoss(pd, additionals)
-
-    # with_logger(logg) do
-    #     global ct
-    #     @info "[$ct] instantiated with $(curloss)"
-    # end
-
-    t1 = time()
-
-    #train parameters
-    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd, additionals) for _ in 1:THREADS]
-    results = map(Distributed.fetch, tasks)
-    indecks = argmin([Optim.minimum(results[i]) for i in 1:length(results)])
-
-    local pd = Optim.minimizer(results[indecks])
-    best = Optim.minimum(results[indecks])
-
-    maxVelo,nStart,hEnd = getMNH(pd[end-2],pd[end-1],pd[end])
-
-    with_logger(logg) do 
-        global ct
-        @info "[$ct] loss = $best. took $(time()-t1) sec. $(THREADS) threads. m= $maxVelo, n=$nStart, h=$hEnd"
-    end
-
-    writedlm(out, pd)
-
-    global ct += 1
-end
-
-# """
-# PLOTTING?
-# """
-
-# include("plot/plotting.jl")
-
-# #Graph plotting
-# include("plot/graphplotting.jl")
+@everywhere include("plot/protos.jl")
