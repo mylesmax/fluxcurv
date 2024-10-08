@@ -1,0 +1,10 @@
+Main | TueJun18 @ 8:22:0PM CDT | [Info] This log can be found at logs-3/061862-log_2024-06-18_20-21-59.log.
+Main | TueJun18 @ 8:22:0PM CDT | [Info] nprocs = 201
+Main | TueJun18 @ 8:22:0PM CDT | [Info] Packages and prereqs loaded, running with allocated threads = 100.
+Main | TueJun18 @ 8:22:0PM CDT | [Info] n set to 9
+Main | TueJun18 @ 8:22:1PM CDT | [Info] wrote new pd to models/Jun18/061862_n=9.model
+Main | TueJun18 @ 8:59:37PM CDT | [Info] [0] loss = 0.1041383241971333. took 2249.2537689208984 sec. 100 threads.
+Main | TueJun18 @ 9:32:42PM CDT | [Info] [1] loss = 0.0687208711159173. took 1984.4247078895569 sec. 100 threads.
+Main | TueJun18 @ 10:4:21PM CDT | [Info] [2] loss = 0.06458711138053666. took 1898.9856867790222 sec. 100 threads.
+Main | TueJun18 @ 10:36:28PM CDT | [Info] [3] loss = 0.06157275423595171. took 1926.35564494133 sec. 100 threads.
+Main | TueJun18 @ 11:8:47PM CDT | [Info] [4] loss = 0.054993872388827324. took 1938.4637360572815 sec. 100 threads.

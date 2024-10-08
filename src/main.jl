@@ -42,35 +42,58 @@ for i in 1:n
     end
 end
 
-global params = getParams()
 
-function Q(V::T) where T <: Number
-    global rates, args₁, args₂
-    
-    function r(x::Int64, y::Int64)
-        e = Edge(x,y)
-        α, β = rates[e]
-
-        rate = exp(α + (β * tanh((V + args₁)/args₂)))
-
-        rate > 0.2 ? (return rate) : (return 0)
-        #added pruning?
-        # return 
-        # #TODO: add pruning if this is below a threshold?
-    end
-    q = zeros(n,n)
-
-    for i ∈ 1:n
-        for j ∈ 1:n
-            i==j ? (q[i,j] = -sum(r(j, i) for j in 1:n if j != i)) : (q[i,j] = r(i,j))
-        end
-    end
-
-    return q
+@everywhere THREADS = trunc(Int, nprocs()/2)
+with_logger(logg) do 
+    @info "Packages and prereqs loaded, running with allocated threads = $(THREADS)."
 end
 
+@everywhere local pd
+n = 0 #make sure to also change in loss.jl and (for later) graph.jl and protos.jl
+if length(ARGS) > 0
+    n = parse(Int, ARGS[1])
+else
+    n = 7
+end
 
+@everywhere n= $n
 
+with_logger(logg) do
+    @info "m,n,h activated. n set to $n"
+end
+@everywhere n̅ = 1
+@everywhere global additionals = [n, n̅]
+@everywhere out = "models/Jul28/$(modelID)_n=$n.model"
+global ct
+
+# #GRAPH
+# s=1.5
+# g = complete_graph(n)
+# @drawsvg begin
+# background("grey10")
+# sethue("pink")
+# drawgraph(g, vertexlabels = vertices(g),vertexshapesizes = (v) -> v ∈ (n̅) ? 25 : 20,vertexfillcolors = (v) -> v ∈ (n̅) && colorant"lightgreen")
+# end 500*s 400*s
+
+@everywhere pd = rand(3*(n*(n-1)) + 3) #add the m,n,h
+    
+# @everywhere (n == 7) ? (pd = vec(readdlm("models/good7State.txt")); println("pd absorbed from good7state")) : (pd = vec(readdlm("out8.txt")); println("pd absorbed from out8"))
+writedlm(out, pd)
+with_logger(logg) do
+    @info "wrote new pd to $out"
+end
+
+global ct = 0
+while true
+    local pd = vec(readdlm(out))
+    local curloss = consolidatedLoss(pd, additionals)
+
+    # with_logger(logg) do
+    #     global ct
+    #     @info "[$ct] instantiated with $(curloss)"
+    # end
+
+    t1 = time()
 
 try
     global params = vec(readdlm("out.txt"))
@@ -111,14 +134,16 @@ try
         @sync println("[$count] cycle over, best fitness $(best_fitness(res))")
     end
 
+    writedlm(out, pd)
 
-finally
-
-    global params = best_candidate(res)
-    setParams!(params)
-
-    optimal_fitness = best_fitness(res)
-
-    writedlm("out.txt", params)
-    writedlm("newest.txt", optimal_fitness) end
+    global ct += 1
 end
+
+# """
+# PLOTTING?
+# """
+
+# include("plot/plotting.jl")
+
+# #Graph plotting
+# include("plot/graphplotting.jl")

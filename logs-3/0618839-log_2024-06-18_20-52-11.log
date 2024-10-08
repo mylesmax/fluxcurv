@@ -1,0 +1,6 @@
+Main | TueJun18 @ 8:52:11PM CDT | [Info] This log can be found at logs-3/0618839-log_2024-06-18_20-52-11.log.
+Main | TueJun18 @ 8:52:11PM CDT | [Info] nprocs = 481
+Main | TueJun18 @ 8:52:12PM CDT | [Info] Packages and prereqs loaded, running with allocated threads = 240.
+Main | TueJun18 @ 8:52:12PM CDT | [Info] n set to 17
+Main | TueJun18 @ 8:52:13PM CDT | [Info] wrote new pd to models/Jun18/0618839_n=17.model
+Main | TueJun18 @ 10:38:44PM CDT | [Info] [0] loss = 0.10425848624518066. took 6383.3892941474915 sec. 240 threads.

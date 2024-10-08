@@ -1,0 +1,107 @@
+  Activating project at `/storage1/jonsilva/Active/m.max/projects/fluxcurv`
+ERROR: LoadError: On worker 338:
+ArgumentError: matrix contains Infs or NaNs
+Stacktrace:
+  [1] chkfinite
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/LinearAlgebra/src/lapack.jl:86
+  [2] gebal!
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/LinearAlgebra/src/lapack.jl:216
+  [3] exponential!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/exp_baseexp.jl:37
+  [4] exponential!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/exp_baseexp.jl:25 [inlined]
+  [5] #phiv_dense!#11
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/phi.jl:80
+  [6] phiv_dense!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/phi.jl:61 [inlined]
+  [7] #phiv!#35
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv.jl:271
+  [8] phiv!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv.jl:256 [inlined]
+  [9] #phiv_timestep!#43
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:185
+ [10] phiv_timestep!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:102 [inlined]
+ [11] #expv_timestep!#39
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:54
+ [12] expv_timestep!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:51 [inlined]
+ [13] #expv_timestep!#38
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:48 [inlined]
+ [14] expv_timestep!
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:46 [inlined]
+ [15] #expv_timestep#37
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:39
+ [16] expv_timestep
+    @ ~/.julia/packages/ExponentialUtilities/xLH9y/src/krylov_phiv_adaptive.jl:37 [inlined]
+ [17] #simulateStep#8
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/loss.jl:56
+ [18] simulateStep
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/loss.jl:29 [inlined]
+ [19] #consolidatedLoss#11
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/loss.jl:339
+ [20] consolidatedLoss
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/loss.jl:155 [inlined]
+ [21] #1
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/cascade.jl:24
+ [22] value
+    @ ~/.julia/packages/NLSolversBase/kavn7/src/interface.jl:19
+ [23] compute_cost!
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/solvers/zeroth_order/particle_swarm.jl:481
+ [24] update_state!
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/solvers/zeroth_order/particle_swarm.jl:249
+ [25] optimize
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/optimize/optimize.jl:54
+ [26] optimize
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/optimize/optimize.jl:36 [inlined]
+ [27] #optimize#91
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/optimize/interface.jl:143 [inlined]
+ [28] optimize
+    @ ~/.julia/packages/Optim/ZhuZN/src/multivariate/optimize/interface.jl:139 [inlined]
+ [29] optimizationCascade
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/traintils/cascade.jl:24
+ [30] #31
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/macros.jl:43
+ [31] #invokelatest#2
+    @ ./essentials.jl:892 [inlined]
+ [32] invokelatest
+    @ ./essentials.jl:889
+ [33] #107
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/process_messages.jl:283
+ [34] run_work_thunk
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/process_messages.jl:70
+ [35] run_work_thunk
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/process_messages.jl:79
+ [36] #100
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/process_messages.jl:88
+Stacktrace:
+  [1] remotecall_fetch(f::Function, w::Distributed.Worker, args::Distributed.RRID; kwargs::@Kwargs{})
+    @ Distributed /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/remotecall.jl:465
+  [2] remotecall_fetch(f::Function, w::Distributed.Worker, args::Distributed.RRID)
+    @ Distributed /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/remotecall.jl:454
+  [3] remotecall_fetch
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/remotecall.jl:492 [inlined]
+  [4] call_on_owner
+    @ /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/remotecall.jl:565 [inlined]
+  [5] fetch(r::Future)
+    @ Distributed /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/remotecall.jl:619
+  [6] iterate
+    @ ./generator.jl:47 [inlined]
+  [7] collect_to!(dest::Vector{Optim.MultivariateOptimizationResults{ParticleSwarm{Vector{Float64}, Vector{Float64}}, Vector{Float64}, Float64, Float64, Vector{OptimizationState{Float64, ParticleSwarm{Vector{Float64}, Vector{Float64}}}}, Bool, @NamedTuple{f_limit_reached::Bool, g_limit_reached::Bool, h_limit_reached::Bool, time_limit::Bool, callback::Bool, f_increased::Bool}}}, itr::Base.Generator{Vector{Future}, typeof(fetch)}, offs::Int64, st::Int64)
+    @ Base ./array.jl:892
+  [8] collect_to_with_first!(dest::Vector{Optim.MultivariateOptimizationResults{ParticleSwarm{Vector{Float64}, Vector{Float64}}, Vector{Float64}, Float64, Float64, Vector{OptimizationState{Float64, ParticleSwarm{Vector{Float64}, Vector{Float64}}}}, Bool, @NamedTuple{f_limit_reached::Bool, g_limit_reached::Bool, h_limit_reached::Bool, time_limit::Bool, callback::Bool, f_increased::Bool}}}, v1::Optim.MultivariateOptimizationResults{ParticleSwarm{Vector{Float64}, Vector{Float64}}, Vector{Float64}, Float64, Float64, Vector{OptimizationState{Float64, ParticleSwarm{Vector{Float64}, Vector{Float64}}}}, Bool, @NamedTuple{f_limit_reached::Bool, g_limit_reached::Bool, h_limit_reached::Bool, time_limit::Bool, callback::Bool, f_increased::Bool}}, itr::Base.Generator{Vector{Future}, typeof(fetch)}, st::Int64)
+    @ Base ./array.jl:870
+  [9] _collect(c::Vector{Future}, itr::Base.Generator{Vector{Future}, typeof(fetch)}, ::Base.EltypeUnknown, isz::Base.HasShape{1})
+    @ Base ./array.jl:864
+ [10] collect_similar(cont::Vector{Future}, itr::Base.Generator{Vector{Future}, typeof(fetch)})
+    @ Base ./array.jl:763
+ [11] map(f::Function, A::Vector{Future})
+    @ Base ./abstractarray.jl:3285
+ [12] top-level scope
+    @ /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/main.jl:83
+in expression starting at /storage1/jonsilva/Active/m.max/projects/fluxcurv/src/main.jl:71
+┌ Warning: Forcibly interrupting busy workers
+│   exception = rmprocs: pids [3, 10, 16, 18, 24, 25, 31, 34, 35, 46, 48, 61, 62, 67, 90, 91, 97, 99, 100, 108, 112, 116, 118, 119, 126, 135, 137, 146, 151, 153, 159, 164, 181, 194, 201, 205, 209, 224, 226, 236, 237, 238, 244, 258, 260, 268, 270, 275, 278, 279, 284, 289, 297, 302, 306, 313, 314, 317, 329, 333, 341, 350, 376, 378, 381, 390, 391, 393, 396, 397, 400, 401, 402, 421, 423, 429, 438, 444, 445, 451, 459, 460, 465, 466, 469, 481] not terminated after 5.0 seconds.
+└ @ Distributed /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/cluster.jl:1253
+┌ Warning: rmprocs: process 1 not removed
+└ @ Distributed /storage1/jonsilva/Active/m.max/julia-1.10.2/share/julia/stdlib/v1.10/Distributed/src/cluster.jl:1049
