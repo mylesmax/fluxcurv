@@ -41,3 +41,6 @@ wrapPlot("logs-6/bsub/output_875448.log")
 wrapPlot("logs-6/bsub/output_875451.log")
 wrapPlot("logs-6/bsub/output_875453.log")
 wrapPlot("logs-6/bsub/output_875454.log")
+
+wrapPlot("logs-6/bsub/output_877793.log")
+wrapPlot("logs-6/bsub/output_877800.log")

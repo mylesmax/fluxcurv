@@ -531,23 +531,43 @@ function consolidatedLoss(params::Vector{Float64}, additionals::Vector{Int64}; r
 
     # edgeError = 10 * sum( vcat(edges...))
     
+    # errors::Vector{Float64} = [
+    #     (4 * activationErr),
+    #     (2 * inactivationErr),
+    #     (2 * recoveryErr),
+    #     (4 * recoveryUDBErr),
+    #     (2* maxPOErr),
+    #     (4 * fallErr),
+    #     (1 * ttpErr)
+    #     # (4*edgeError)
+    # ]
+    # weights::Vector{Float64} = [
+    #     4,
+    #     2,
+    #     2,
+    #     4,
+    #     2,
+    #     4,
+    #     1
+    #     # 4
+    # ]
     errors::Vector{Float64} = [
-        (4 * activationErr),
-        (2 * inactivationErr),
-        (2 * recoveryErr),
-        (4 * recoveryUDBErr),
-        (2* maxPOErr),
-        (4 * fallErr),
+        (1 * activationErr),
+        (1 * inactivationErr),
+        (1 * recoveryErr),
+        (1 * recoveryUDBErr),
+        (1* maxPOErr),
+        (1 * fallErr),
         (1 * ttpErr)
         # (4*edgeError)
     ]
     weights::Vector{Float64} = [
-        4,
-        2,
-        2,
-        4,
-        2,
-        4,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
         1
         # 4
     ]
