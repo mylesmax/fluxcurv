@@ -1,45 +1,29 @@
-@everywhere using Pkg
-@everywhere Pkg.activate(".")
+using Pkg
+Pkg.activate(".")
 
-@everywhere using Graphs, Karnak, Colors, BlackBoxOptim, Distributed
-@everywhere using Flux, FastExpm, YAML, DelimitedFiles
-@everywhere import Flux.Losses: mse
+@everywhere using Graphs
+@everywhere using Karnak, Colors, UnPack
+@everywhere using Optim, Distributed, Dagger, LinearAlgebra
+@everywhere using YAML, DelimitedFiles, Statistics
+@everywhere using ExponentialUtilities
+@everywhere using Logging, Printf, Dates, LoggingExtras
+@everywhere include("traintils/cascade.jl")
+# @everywhere include("traintils/pade.jl")
+@everywhere include("traintils/loss.jl")
 
-@everywhere begin
-
-global n=7
-global n̅ = 1
-global rates = Dict{Edge, Tuple{Float64, Float64}}()
-global args₁ = 2
-global args₂ = -4
-global dt = 0.0001
-global dataPath = "res/INaHEK/"
-
-include("traintils/param.jl")
-include("proto/protoImport.jl")
-include("proto/protocols.jl")
-include("proto/protocolBlocks.jl")
-include("traintils/objective.jl")
-
-s=1.5
-g = complete_graph(n)
-@drawsvg begin
-   background("grey10")
-   
-   sethue("pink")
-   
-   drawgraph(g, vertexlabels = vertices(g),vertexshapesizes = (v) -> v ∈ (n̅) ? 25 : 20,vertexfillcolors = (v) -> v ∈ (n̅) && colorant"lightgreen")
-end 500*s 400*s
-
-#randomly initialize edge weights
-for i in 1:n
-    for j in 1:n
-        if i != j
-            global rates
-            rates[Edge(i, j)] = (100*rand(), 100*rand())
-            rates[Edge(j, i)] = (100*rand(), 100*rand())
-        end
-    end
+idd = Dates.format(now(), "mmddss")
+@everywhere modelID = $idd
+p = joinpath("logs-6/", @sprintf("%s-log_%s.log", (modelID), Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")))
+formatlogger = FormatLogger(p, append=true) do io, args
+    println(io, args._module, " | $(Dates.format(now(), "eud @ I:M:Sp CDT")) | ", "[", args.level, "] ", args.message)
+end
+consolelogger = FormatLogger(stdout) do io, args
+    println(io, "[", args.level, "] ", args.message)
+end
+logg = TeeLogger(formatlogger, consolelogger)
+with_logger(logg) do 
+    @info "This log can be found at $p."
+    @info "nprocs = $(nprocs())"
 end
 
 
@@ -95,43 +79,19 @@ while true
 
     t1 = time()
 
-try
-    global params = vec(readdlm("out.txt"))
-    global curbestFitness = vec(readdlm("newest.txt"))[1]
-    count = 0;
-    while true
-        global params = vec(readdlm("out.txt"))
-        global curbestFitness = vec(readdlm("newest.txt"))[1]
+    #train parameters
+    tasks = [Distributed.@spawn optimizationCascade(consolidatedLoss, pd, additionals) for _ in 1:THREADS]
+    results = map(Distributed.fetch, tasks)
+    indecks = argmin([Optim.minimum(results[i]) for i in 1:length(results)])
 
-        res = bboptimize(
-                loss, params;
-                # NThreads = Threads.nthreads()-1,
-                NumDimensions=length(params),
-                MaxTime = 70,
-                SearchRange = (-17, 17),
-                TraceMode = :silent,
-                PopulationSize = 5000,
-                NThreads = Threads.nthreads()-1,
-                Method = :probabilistic_descent,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
-                # NThreads = Threads.nthreads()-1,
-                lambda = 100,
-                # Method = :probabilistic_descent,
-                
-                Workers = workers()
-        )
-        @sync begin end
-        @sync if best_fitness(res) < curbestFitness
-            global params = best_candidate(res)
-            global curbestFitness = best_fitness(res)
-            setParams!(params)
-            println("new best fitness ($(best_fitness(res)))")
-            writedlm("out.txt", params)
-            writedlm("newest.txt", curbestFitness)
-        end
-        count += 1;
-        @sync println("[$count] cycle over, best fitness $(best_fitness(res))")
+    local pd = Optim.minimizer(results[indecks])
+    best = Optim.minimum(results[indecks])
+
+    maxVelo,nStart,hEnd = getMNH(pd[end-2],pd[end-1],pd[end])
+
+    with_logger(logg) do 
+        global ct
+        @info "[$ct] loss = $best. took $(time()-t1) sec. $(THREADS) threads. m= $maxVelo, n=$nStart, h=$hEnd"
     end
 
     writedlm(out, pd)
